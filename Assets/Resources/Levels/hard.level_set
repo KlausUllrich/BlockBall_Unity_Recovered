@@ -1,0 +1,6 @@
+<Levels Name="hard">
+	<Level Name="small detour" />
+	<Level Name="late jumps" />
+	<Level Name="a maze thing" />
+	<Level Name="thin grids" />
+</Levels>
