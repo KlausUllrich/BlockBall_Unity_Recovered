@@ -81,11 +81,19 @@ public class UISetupHelper : MonoBehaviour
         // Find a default font if not assigned
         EnsureDefaultFontAssigned();
         
+        // Find or create GameScreen to parent UI elements to
+        GameObject gameScreen = GameObject.Find("GameScreen");
+        if (gameScreen == null)
+        {
+            Debug.LogWarning("GameScreen not found! UI elements will be parented to main canvas and always visible.");
+            gameScreen = mainCanvas.gameObject;
+        }
+        
         // Create Score Label
         if (playerScoreLabel == null)
         {
             GameObject scoreObj = new GameObject("PlayerScoreLabel");
-            scoreObj.transform.SetParent(mainCanvas.transform, false);
+            scoreObj.transform.SetParent(gameScreen.transform, false);
             playerScoreLabel = scoreObj.AddComponent<TextMeshProUGUI>();
             playerScoreLabel.text = "Score: 0";
             playerScoreLabel.fontSize = 36;
@@ -97,13 +105,16 @@ public class UISetupHelper : MonoBehaviour
             scoreRect.pivot = new Vector2(0, 1);
             scoreRect.anchoredPosition = new Vector2(20, -20);
             scoreRect.sizeDelta = new Vector2(300, 50);
+            
+            // Rename to match expected "Score" GameObject name
+            scoreObj.name = "Score";
         }
         
         // Create Info Label
         if (playerInfoLabel == null)
         {
             GameObject infoObj = new GameObject("PlayerInfoLabel");
-            infoObj.transform.SetParent(mainCanvas.transform, false);
+            infoObj.transform.SetParent(gameScreen.transform, false);
             playerInfoLabel = infoObj.AddComponent<TextMeshProUGUI>();
             playerInfoLabel.text = "";
             playerInfoLabel.fontSize = 36;
@@ -116,13 +127,16 @@ public class UISetupHelper : MonoBehaviour
             infoRect.pivot = new Vector2(0.5f, 0.5f);
             infoRect.anchoredPosition = new Vector2(0, 0);
             infoRect.sizeDelta = new Vector2(600, 100);
+            
+            // Rename to match expected "InfoText" GameObject name
+            infoObj.name = "InfoText";
         }
         
         // Create Keys Label
         if (playerKeysLabel == null)
         {
             GameObject keysObj = new GameObject("PlayerKeysLabel");
-            keysObj.transform.SetParent(mainCanvas.transform, false);
+            keysObj.transform.SetParent(gameScreen.transform, false);
             playerKeysLabel = keysObj.AddComponent<TextMeshProUGUI>();
             playerKeysLabel.text = "Keys: ";
             playerKeysLabel.fontSize = 36;
@@ -134,9 +148,12 @@ public class UISetupHelper : MonoBehaviour
             keysRect.pivot = new Vector2(1, 1);
             keysRect.anchoredPosition = new Vector2(-20, -20);
             keysRect.sizeDelta = new Vector2(300, 50);
+            
+            // Rename to match expected "Keys" GameObject name
+            keysObj.name = "Keys";
         }
         
-        Debug.Log("Player labels created successfully!");
+        Debug.Log("Player labels created successfully and parented to GameScreen!");
     }
     
     /// <summary>

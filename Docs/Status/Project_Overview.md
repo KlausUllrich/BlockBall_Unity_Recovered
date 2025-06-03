@@ -394,3 +394,106 @@ ScreenStateLoading.TryLoadLevel() → No BlockMerger found → Runtime creation 
 - **States**: Screen state management controls UI transitions  
 - **Loading**: BlockMerger.LoadLevel() creates new Level(fileName).Build() to parse XML and create GameObjects
 - **Critical**: MainScene loads level content dynamically, does NOT load different Unity scenes
+
+## Critical Issues Identified
+
+### 1. PowerUI Migration Status
+   - **ACHIEVEMENT**: ✅ **COMPLETE** - PowerUI fully removed, Unity UI system functional
+   - **ACHIEVEMENT**: ✅ **COMPLETE** - All helper scripts removed, project cleaned
+   - **ACHIEVEMENT**: ✅ **COMPLETE** - Button name mismatch fixed (PlayButton/ExitButton)
+   - **ACHIEVEMENT**: ✅ **COMPLETE** - Exit button now works in Unity Editor
+
+### 2. UI System Layout Issues
+   - **ANALYSIS COMPLETE**: ✅ **ROOT CAUSE IDENTIFIED** - Score/Keys UI created by UISetupHelper script
+   - **ISSUE**: UISetupHelper.CreatePlayerLabels() was parenting UI elements to main canvas instead of GameScreen
+   - **CODE ISSUE**: UI elements created with names "PlayerScoreLabel"/"PlayerKeysLabel" but referenced as "Score"/"Keys"
+   - **ACHIEVEMENT**: ✅ **FIXED** - UISetupHelper updated to parent UI elements to GameScreen GameObject
+   - **ACHIEVEMENT**: ✅ **FIXED** - UI element names corrected to match expected "Score"/"Keys" references
+   - **ACHIEVEMENT**: ✅ **MANUALLY FIXED** - Existing UI elements moved from MainCanvas to GameScreen in hierarchy
+   - **RESULT**: Game UI elements now properly contained within GameScreen and controlled by screen states
+
+### 3. Asset Integration Required
+   - **ACHIEVEMENT**: ✅ **COMPLETE** - All key assets transferred to proper Resources structure
+   - **FINAL ASSET LOCATIONS**:
+     * `Assets/Resources/UI/BlockBall_evolution_Logo.jpg` - Main game logo
+     * `Assets/Resources/UI/TeamLogo.jpg` - Intro screen logo  
+     * `Assets/Resources/UI/selector.dds` - Menu selection indicator
+     * `Assets/Resources/UI/Key_*.dds` - Key collectible graphics (5 keys)
+     * `Assets/Resources/UI/BlockBall.ttf` and `BlockBall_bold.ttf` - Custom fonts
+     * `Assets/Resources/UI/Background.dds` - PlayButton background image (newly added)
+     * `Assets/Resources/SFX/WinSound.wav` and `roll.wav` - Game audio files
+   - **ACHIEVEMENT**: ✅ Scripts updated to use proper Resources.Load() paths with "UI/" prefix
+   - **ACHIEVEMENT**: ✅ MainMenuUI updated to apply Background.dds to PlayButton
+   - **ARCHITECTURE**: Using Unity's Resources system for runtime asset loading (UI/ and SFX/ subfolders)
+
+## 🎨 **UI DESIGN SPECIFICATIONS** (Based on Reference Images)
+
+### Main Menu Screen Design
+- **LAYOUT**: Clean, centered design with BLOCKBALL evolution logo prominently displayed
+- **LOGO**: BlockBall_evolution_Logo.jpg centered in upper portion
+- **MENU BUTTONS**: 
+  * Play button with custom background (Background.dds)
+  * Exit button with consistent styling
+  * Orange selector circle (selector.dds) for menu navigation
+- **FONT**: Custom BlockBall.ttf font family for consistent branding
+- **BACKGROUND**: Clean, uncluttered design focusing on logo and menu options
+
+### In-Game UI Layout Specification
+- **KEYS DISPLAY**: Upper right corner - showing collected keys with Key_*.dds graphics
+- **TIMER**: Top center - countdown timer in MM:SS format
+- **DIAMONDS/SCORE**: Upper right area - diamond count display
+- **TIMEBAR**: Right side of screen - vertical progress bar
+- **INFO TEXT**: Lower area - contextual game information and messages
+- **LAYOUT PRINCIPLE**: HUD elements positioned around screen edges, keeping center clear for gameplay
+
+### Design Assets Integration Status
+- ✅ Logo: BlockBall_evolution_Logo.jpg (transferred to Resources/UI/)
+- ✅ Fonts: BlockBall.ttf & BlockBall_bold.ttf (transferred to Resources/UI/)
+- ✅ Button Background: Background.dds (transferred to Resources/UI/)
+- ✅ Menu Selector: selector.dds (transferred to Resources/UI/)
+- ✅ Key Graphics: Key_0-4.dds (transferred to Resources/UI/)
+- ✅ Intro Logo: TeamLogo.jpg (for intro screen)
+
+---
+
+## 📋 **NEXT SESSION TASKS**
+
+### PRIORITY 1: UI Layout Implementation
+1. **Main Menu Visual Design**
+   - Apply BlockBall_evolution_Logo.jpg to main menu
+   - Style Play/Exit buttons with Background.dds and custom fonts
+   - Implement selector.dds for menu navigation
+   - Position elements according to reference design
+
+2. **In-Game UI Positioning**
+   - Move Keys display to upper right corner
+   - Center timer at top of screen
+   - Position diamonds/score in upper right
+   - Create and position timebar on right side
+   - Move info text to lower screen area
+
+3. **Font Integration**
+   - Convert BlockBall.ttf to TextMeshPro font assets
+   - Apply custom fonts across all UI elements
+   - Ensure consistent typography throughout
+
+### PRIORITY 2: Level Loading Debugging  
+1. **Diagnostic Implementation**
+   - Add detailed logging to Level.Build() method
+   - Compare testcamera vs MainScene setup differences
+   - Identify missing components or configurations
+
+2. **Scene Comparison Analysis**
+   - Document component differences between working/non-working scenes
+   - Replicate successful testcamera setup in MainScene
+
+### PRIORITY 3: Final Polish
+1. **UI Flow Testing**
+   - Test complete Intro → Main Menu → Loading → Game flow
+   - Verify proper screen transitions and UI visibility
+   - Test Play/Exit button functionality
+
+2. **Integration Verification**
+   - Confirm asset loading from Resources paths
+   - Test game UI visibility only during gameplay
+   - Verify audio integration (WinSound.wav, roll.wav)

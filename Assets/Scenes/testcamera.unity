@@ -172,6 +172,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 766dc4f743b857b41ab9863a859f9d8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  logoImage: {fileID: 0}
   playButton: {fileID: 327517628}
   exitButton: {fileID: 365982491}
 --- !u!1 &171743454
@@ -1621,7 +1622,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 944a5c397abdac94f986c653365c80fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  logoObject: {fileID: 1498387366}
+  scoreText: {fileID: 0}
+  keysText: {fileID: 0}
+  timerText: {fileID: 0}
+  diamondsText: {fileID: 0}
+  timebar: {fileID: 0}
+  infoText: {fileID: 0}
 --- !u!1 &1422300014
 GameObject:
   m_ObjectHideFlags: 0
@@ -2424,6 +2430,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 766dc4f743b857b41ab9863a859f9d8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  logoImage: {fileID: 0}
   playButton: {fileID: 327517628}
   exitButton: {fileID: 365982491}
 --- !u!4 &1820798612
@@ -2540,7 +2547,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1855851454}
   - component: {fileID: 1855851453}
-  - component: {fileID: 1855851452}
   - component: {fileID: 1855851455}
   m_Layer: 0
   m_Name: UIMigrationHelper
@@ -2549,22 +2555,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1855851452
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1855851451}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 86024890951c84f4abfbb39cb31bac1d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  powerUIDefineSymbolRemoved: 0
-  powerUIFolderDeleted: 0
-  uiManagerReplaced: 0
-  htmlFilesRemoved: 0
 --- !u!114 &1855851453
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2646,7 +2636,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_xStandardUIManager: {fileID: 1514188467}
-  xEditorStartScreenState: 3
+  xEditorStartScreenState: 2
 --- !u!4 &1940480893
 Transform:
   m_ObjectHideFlags: 0

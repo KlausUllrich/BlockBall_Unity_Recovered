@@ -63,7 +63,15 @@ public class ScreenStateMenu : ScreenStateBase
 	// -------------------------------------------------------------------------------------------
 	void Exit()
 	{
+		Debug.Log("Exit button clicked!");
+		
+#if UNITY_EDITOR
+		// In editor, stop play mode
+		UnityEditor.EditorApplication.isPlaying = false;
+#else
+		// In built application, quit the game
 		Application.Quit();
+#endif
 	}
 
 	// -------------------------------------------------------------------------------------------
