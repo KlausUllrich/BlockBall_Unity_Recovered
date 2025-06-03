@@ -3,8 +3,8 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Controller for the main menu UI screen.
-/// This replaces the HTML-based MainMenu.html from PowerUI.
+/// Unity UI implementation for the main menu screen.
+/// Handles main menu navigation and UI interactions.
 /// </summary>
 public class MainMenuUI : MonoBehaviour
 {

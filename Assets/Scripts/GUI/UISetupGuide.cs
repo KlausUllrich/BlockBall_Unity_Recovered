@@ -3,8 +3,8 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// This is a reference guide file - NOT a MonoBehaviour script.
-/// It provides instructions on how to set up the Unity UI prefabs that replace the PowerUI HTML-based UI.
+/// Comprehensive guide for setting up Unity UI system in the BlockBall project.
+/// Provides step-by-step instructions for creating UI prefabs and configuring the StandardUIManager.
 /// </summary>
 public class UISetupGuide
 {

@@ -3,8 +3,8 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Controller for the game UI screen.
-/// This replaces the HTML-based Game.html from PowerUI.
+/// Unity UI implementation for the game screen.
+/// Handles game UI elements like score, lives, diamonds, and keys display.
 /// </summary>
 public class GameUI : MonoBehaviour
 {

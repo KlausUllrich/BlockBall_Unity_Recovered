@@ -4,8 +4,8 @@ using UnityEngine.EventSystems;
 using System;
 
 /// <summary>
-/// Controller for intro screens (logos).
-/// This replaces the HTML-based IntroGamesAcademyLogo.html and Intro4MindsLogo.html from PowerUI.
+/// Unity UI implementation for intro screens and splash logos.
+/// Handles the display of company and game logos during startup.
 /// </summary>
 public class IntroScreenUI : MonoBehaviour
 {
