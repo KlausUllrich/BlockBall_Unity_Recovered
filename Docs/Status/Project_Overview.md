@@ -168,6 +168,27 @@ The project progress has been reverted to a previous state. Previous attempts:
 - **Test incrementally** - Verify each small change works before proceeding
 - **Add extensive logging** - Need visibility into what's actually happening during level loading
 
+## Recommended Next Steps (Priority Order)
+
+### 1. Complete UI Screen Setup (HIGH PRIORITY)
+**Issue**: Screen transitions fail because StandardUIManager has no screen GameObjects assigned.
+
+**CORRECTION**: UI screen GameObjects already exist under MainCanvas with scripts attached, but StandardUIManager component needs GameObject references assigned.
+
+**Solution Steps**:
+1. **Open MainScene in Unity Editor**
+2. **Find StandardUIManager component** (likely attached to a GameObject)
+3. **Assign the existing UI GameObjects** to StandardUIManager's fields:
+   - Drag the MainMenu GameObject to `Main Menu Screen` field
+   - Drag the Game GameObject to `Game Screen` field  
+   - Drag the Loading GameObject to `Loading Screen` field
+   - Drag the Intro GameObject to `Intro Screen` field
+4. **Test Flow**: Intro → Menu → Loading → Game
+
+**Note**: The UI scripts (MainMenuUI.cs, GameUI.cs, etc.) are already attached to the GameObjects.
+
+### 2. Clean Up Project Files
+
 ## 2. Feature Status
 
 | Feature | Status | Notes |
@@ -196,10 +217,14 @@ The project progress has been reverted to a previous state. Previous attempts:
 
 2. **UI System Screen Transitions**
    - **ACHIEVEMENT**: Level loading and game UI now functional (confirmed working 2025-06-03)
+   - **ACHIEVEMENT**: PowerUI HTML files removed (`Game.html`, `MainMenu.html`, etc.)
    - **ISSUE**: Menu→Game screen transitions not working properly
-   - **REMAINING POWERUI ARTIFACTS**: HTML files still present in `Assets/Resources/GUI/`
-     - `Game.html`, `MainMenu.html`, `Intro4MindsLogo.html`, `IntroGamesAcademyLogo.html`
-   - **NEEDED**: Complete UI screen prefab implementation and screen state management
+   - **ROOT CAUSE**: StandardUIManager expects GameObject references for screens but they're not assigned in scene
+   - **NEEDED**: 
+     * Create UI screen GameObjects in scene (MainMenuScreen, GameScreen, LoadingScreen, IntroScreen)
+     * Assign these GameObject references to StandardUIManager component
+     * Wire up UI prefab classes (GameUI.cs, MainMenuUI.cs, LoadingUI.cs, IntroScreenUI.cs) to their GameObjects
+     * Test complete flow: Intro → Menu → Loading → Game
 
 3. **Code Modernization**
    - Several deprecated Unity patterns and coding practices need updating

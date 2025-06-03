@@ -18,7 +18,7 @@ public class ScreenStateMenu : ScreenStateBase
 		m_xScreenStateManager.m_xStandardUIManager.ChangeScreen("MainMenu");
 
 		// Find button components and add listeners
-		Button playButton = m_xScreenStateManager.m_xStandardUIManager.GetElementById("Play")?.GetComponent<Button>();
+		Button playButton = m_xScreenStateManager.m_xStandardUIManager.GetElementById("PlayButton")?.GetComponent<Button>();
 		if (playButton != null)
 		{
 			playButton.onClick.RemoveAllListeners();
@@ -29,7 +29,7 @@ public class ScreenStateMenu : ScreenStateBase
 			Debug.LogError("Play button not found in MainMenu screen");
 		}
 
-		Button exitButton = m_xScreenStateManager.m_xStandardUIManager.GetElementById("Exit")?.GetComponent<Button>();
+		Button exitButton = m_xScreenStateManager.m_xStandardUIManager.GetElementById("ExitButton")?.GetComponent<Button>();
 		if (exitButton != null)
 		{
 			exitButton.onClick.RemoveAllListeners();
