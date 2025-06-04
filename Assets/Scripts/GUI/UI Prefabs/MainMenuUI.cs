@@ -1,36 +1,100 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Unity UI implementation for the main menu screen.
-/// Handles main menu layout, logo display, and ensures game UI elements are hidden.
+/// Manages the MainMenuScreen UI elements.
 /// </summary>
-public class MainMenuUI : MonoBehaviour
+public class MainMenuUI : MonoBehaviour 
 {
-    [Header("Menu UI Elements")]
-    public Image logoImage;
+    [Header("Logo and Title")]
+    public Image logo;
+    public TextMeshProUGUI title;
+    
+    [Header("Main Menu Buttons")]
     public Button playButton;
+    public Button selectLevelButton;
     public Button exitButton;
+    
+    [Header("Panel Configuration")]
+    public string mainMenuPanelId = "MainMenu";
+    public string levelSelectionPanelId = "LevelSelection";
+    
+    [Header("Game UI")]
+    public GameObject inGameUIContainer;
+    public TextMeshProUGUI scoreLabel;
+    public TextMeshProUGUI keysLabel;
+    public TextMeshProUGUI infoLabel;
+    
+    private PanelGroupManager panelManager;
     
     void Awake()
     {
-        // Find menu elements if not assigned
-        if (logoImage == null)
-            logoImage = GetComponentInChildren<Image>();
-        if (playButton == null)
-            playButton = GameObject.Find("PlayButton")?.GetComponent<Button>();
-        if (exitButton == null)
-            exitButton = GameObject.Find("ExitButton")?.GetComponent<Button>();
+        // Find the panel group manager
+        panelManager = GetComponentInParent<PanelGroupManager>();
+        if (panelManager == null)
+        {
+            panelManager = FindObjectOfType<PanelGroupManager>();
+        }
+        
+        // Make sure we have references to our buttons
+        if(playButton == null)
+            playButton = transform.Find("PlayButton")?.GetComponent<Button>();
+            
+        if(exitButton == null)
+            exitButton = transform.Find("ExitButton")?.GetComponent<Button>();
+            
+        if(selectLevelButton == null)
+            selectLevelButton = transform.Find("SelectLevelButton")?.GetComponent<Button>();
     }
-    
+
     void OnEnable()
     {
         // Hide any game UI elements when main menu is shown
         HideGameUIElements();
         
+        // Make sure we have the panel manager reference
+        if (panelManager == null)
+        {
+            panelManager = GetComponentInParent<PanelGroupManager>();
+            if (panelManager == null)
+            {
+                panelManager = FindObjectOfType<PanelGroupManager>();
+            }
+        }
+        
         // Setup the main menu layout and logo
         SetupMainMenuLayout();
+        
+        // Wire up the level selection button if present
+        if (selectLevelButton != null)
+        {
+            selectLevelButton.onClick.RemoveAllListeners();
+            selectLevelButton.onClick.AddListener(ShowLevelSelection);
+        }
+        
+        // Wait one frame before showing panel to ensure everything is initialized
+        StartCoroutine(ShowMainMenuPanelNextFrame());
+    }
+    
+        /// <summary>
+    /// Waits for one frame and then shows the main menu panel
+    /// This ensures panels are properly registered before attempting to show them
+    /// </summary>
+    private System.Collections.IEnumerator ShowMainMenuPanelNextFrame()
+    {
+        yield return null; // Wait one frame
+        
+        if (panelManager != null)
+        {
+            panelManager.ShowPanel(mainMenuPanelId);
+        }
+        else
+        {
+            Debug.LogWarning("PanelGroupManager not found! Cannot show main menu panel.");
+        }
     }
     
     private void HideGameUIElements()
@@ -55,15 +119,30 @@ public class MainMenuUI : MonoBehaviour
         if (infoText != null) infoText.SetActive(false);
     }
     
+    /// <summary>
+    /// Shows the level selection panel using the PanelGroupManager
+    /// </summary>
+    public void ShowLevelSelection()
+    {
+        if (panelManager != null)
+        {
+            panelManager.ShowPanel(levelSelectionPanelId);
+        }
+        else
+        {
+            Debug.LogError("PanelGroupManager not found! Cannot show level selection panel.");
+        }
+    }
+    
     private void SetupMainMenuLayout()
     {
         // Load and apply the BlockBall evolution logo
-        if (logoImage != null)
+        if (logo != null)
         {
             var logoTexture = Resources.Load<Texture2D>("UI/BlockBall_evolution_Logo");
             if (logoTexture != null)
             {
-                logoImage.sprite = Sprite.Create(logoTexture, 
+                logo.sprite = Sprite.Create(logoTexture, 
                     new Rect(0, 0, logoTexture.width, logoTexture.height), 
                     new Vector2(0.5f, 0.5f));
             }
@@ -73,6 +152,22 @@ public class MainMenuUI : MonoBehaviour
         if (playButton != null)
         {
             var buttonImage = playButton.GetComponent<Image>();
+            if (buttonImage != null)
+            {
+                var backgroundTexture = Resources.Load<Texture2D>("UI/Background");
+                if (backgroundTexture != null)
+                {
+                    buttonImage.sprite = Sprite.Create(backgroundTexture,
+                        new Rect(0, 0, backgroundTexture.width, backgroundTexture.height),
+                        new Vector2(0.5f, 0.5f));
+                }
+            }
+        }
+        
+        // Apply same styling to Select Level button if it exists
+        if (selectLevelButton != null)
+        {
+            var buttonImage = selectLevelButton.GetComponent<Image>();
             if (buttonImage != null)
             {
                 var backgroundTexture = Resources.Load<Texture2D>("UI/Background");
@@ -102,6 +197,15 @@ public class MainMenuUI : MonoBehaviour
             {
                 // Note: TextMeshPro uses different font system
                 playText.font = Resources.Load<TMPro.TMP_FontAsset>("UI/BlockBall SDF");
+            }
+        }
+        
+        if (selectLevelButton != null)
+        {
+            var selectText = selectLevelButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (selectText != null)
+            {
+                selectText.font = Resources.Load<TMPro.TMP_FontAsset>("UI/BlockBall SDF");
             }
         }
         
