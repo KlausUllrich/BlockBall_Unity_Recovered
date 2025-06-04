@@ -99,102 +99,16 @@ The project progress has been reverted to a previous state. Previous attempts:
 - ✅ Look for any BlockMerger component, any name
 - ✅ Understand this is XML file parsing, not scene loading
 
-## DEBUGGING SESSION FINDINGS (2025-06-03)
 
-### ❌ **FAILED ATTEMPT: Runtime BlockMerger Creation**
 
-**What was tried:**
-- Modified `ScreenStateLoading.TryLoadLevel()` to create BlockMerger component at runtime when none exists
-- Created GameObject with BlockMerger component and set `LevelToLoad = "first_roll_campain"`
-- Called `runtimeMerger.LoadLevel()` to trigger level loading
 
-**Result:** ❌ **COMPLETE FAILURE** - MainScene still not working, same issue as before
-
-**Root Cause Analysis - What's actually wrong:**
-1. **MainScene missing BlockMerger component** ✅ **CONFIRMED** - this is definitely part of the problem
-2. **Level.Build() may be failing** ❓ **UNKNOWN** - runtime creation didn't help, so there may be deeper issues
-3. **Level file path issues** ❓ **POSSIBLE** - need to verify if `first_roll_campain.level` loads correctly
-4. **Missing dependencies in MainScene** ❓ **LIKELY** - testcamera scene may have other required components
-
-### 🔍 **CRITICAL FINDINGS:**
-
-#### testcamera vs MainScene Differences:
-- **testcamera**: ✅ Works but now has "nasty grey appearance" (regression introduced)
-- **MainScene**: ❌ Still completely broken after runtime BlockMerger fix
-- **Conclusion**: Missing BlockMerger is NOT the only problem
-
-#### What Actually Needs Investigation:
-1. **Deep component comparison**: What components/GameObjects exist in testcamera that are missing in MainScene?
-2. **Level.Build() debugging**: Add detailed logging to see where Level.Build() fails
-3. **XML file validation**: Verify the level file actually loads and parses correctly
-4. **Scene hierarchy analysis**: Compare complete scene hierarchies between working and broken scenes
-
-### 🚨 **CRITICAL MISTAKES MADE:**
-
-1. **Assumed BlockMerger was the only issue** - Clearly there are deeper problems
-2. **No step-by-step debugging** - Should have added detailed logging to Level.Build() process
-3. **No working scene analysis** - Should have studied testcamera scene components in detail
-4. **Broke working testcamera** - Introduced "grey appearance" regression
-5. **No incremental testing** - Should have verified each step works before moving to next
-
-### 📋 **RECOMMENDED NEXT APPROACH:**
-
-#### Phase 1: Understand the Working Implementation
-1. **Analyze testcamera scene completely**:
-   - What GameObjects exist in scene hierarchy?
-   - What components are attached to each GameObject?
-   - What is the BlockMerger configuration exactly?
-   - How does the level loading flow work in detail?
-
-2. **Add comprehensive Level.Build() logging**:
-   - Log every step of XML parsing
-   - Log GameObject creation
-   - Log any exceptions or failures
-   - Identify exactly where the process breaks
-
-#### Phase 2: Incremental Replication
-1. **Copy working testcamera setup to MainScene incrementally**
-2. **Test each component addition separately**
-3. **Verify level loading works at each step**
-
-#### Phase 3: Root Cause Identification
-1. **Find the actual missing piece(s)** between scenes
-2. **Fix MainScene by adding only what's necessary**
-3. **Document the complete solution**
-
-### ⚠️ **WARNINGS FOR NEXT SESSION:**
-- **Don't assume runtime component creation will work** - May need actual scene setup
-- **Don't make architectural changes** - Focus on matching working testcamera setup
-- **Test incrementally** - Verify each small change works before proceeding
-- **Add extensive logging** - Need visibility into what's actually happening during level loading
-
-## Recommended Next Steps (Priority Order)
-
-### 1. Complete UI Screen Setup (HIGH PRIORITY)
-**Issue**: Screen transitions fail because StandardUIManager has no screen GameObjects assigned.
-
-**CORRECTION**: UI screen GameObjects already exist under MainCanvas with scripts attached, but StandardUIManager component needs GameObject references assigned.
-
-**Solution Steps**:
-1. **Open MainScene in Unity Editor**
-2. **Find StandardUIManager component** (likely attached to a GameObject)
-3. **Assign the existing UI GameObjects** to StandardUIManager's fields:
-   - Drag the MainMenu GameObject to `Main Menu Screen` field
-   - Drag the Game GameObject to `Game Screen` field  
-   - Drag the Loading GameObject to `Loading Screen` field
-   - Drag the Intro GameObject to `Intro Screen` field
-4. **Test Flow**: Intro → Menu → Loading → Game
-
-**Note**: The UI scripts (MainMenuUI.cs, GameUI.cs, etc.) are already attached to the GameObjects.
-
-### 2. Clean Up Project Files
 
 ## 2. Feature Status
 
 | Feature | Status | Notes |
 |---------|--------|-------|
 | **Core Gameplay** | ✅ Functional | Ball movement, physics, jumping all working |
-| **Level Loading** | ❌ Not Working | XML-based level loading system broken |
+| **Level Loading** | ✅ Functional | Done in the BlockMerger.cs; no level selection so far |
 | **Camera System** | ✅ Functional | Rotation, zoom, and gravity alignment implemented |
 | **Gravity System** | ✅ Functional | 90° and 180° gravity rotation working |
 | **Collectibles** | ✅ Functional | Diamonds and keys implemented |
@@ -215,24 +129,13 @@ The project progress has been reverted to a previous state. Previous attempts:
    - While major API incompatibilities have been addressed, some issues may remain
    - MovieTexture-dependent code has been temporarily disabled but needs proper replacement
 
-2. **UI System Screen Transitions**
-   - **ACHIEVEMENT**: Level loading and game UI now functional (confirmed working 2025-06-03)
-   - **ACHIEVEMENT**: PowerUI HTML files removed (`Game.html`, `MainMenu.html`, etc.)
-   - **ISSUE**: Menu→Game screen transitions not working properly
-   - **ROOT CAUSE**: StandardUIManager expects GameObject references for screens but they're not assigned in scene
-   - **NEEDED**: 
-     * Create UI screen GameObjects in scene (MainMenuScreen, GameScreen, LoadingScreen, IntroScreen)
-     * Assign these GameObject references to StandardUIManager component
-     * Wire up UI prefab classes (GameUI.cs, MainMenuUI.cs, LoadingUI.cs, IntroScreenUI.cs) to their GameObjects
-     * Test complete flow: Intro → Menu → Loading → Game
-
 3. **Code Modernization**
    - Several deprecated Unity patterns and coding practices need updating
    - Method hiding warnings have been addressed but code quality could be improved
 
 ### UI Screen Transition Issues
 
-The UI screen transition system has several critical architectural flaws that prevent proper functioning:
+The UI screen transition system has several critical architectural flaws that prevent proper functioning (may be outdated and need re-analysis):
 
 1. **Class Inheritance Conflicts**
    - `ScreenStateLoading` attempts to use coroutines (`StartCoroutine`) but it's not a MonoBehaviour
@@ -253,30 +156,10 @@ The UI screen transition system has several critical architectural flaws that pr
    - Error handling is incomplete during state transitions
    - Fallback mechanisms not properly implemented for transition failures
 
-5. **Attempted Fixes**
-   - Added null checks for `mainCanvas` references
-   - Made `RegisterScreen` method public in `StandardUIManager`
-   - Fixed the `Hide()` method in `ScreenStateLoading`
-   - Added exception handling for screen registration
-   - Replaced coroutine usage with direct method calls in non-MonoBehaviour classes
-   - These fixes helped but did not resolve all issues
 
-6. **Recommendation**
-   - Consider a full rewrite of the UI screen transition system (in close collaboration with the user)
-   - Either make screen state classes inherit from MonoBehaviour or remove all MonoBehaviour dependencies
-   - Implement a state machine pattern for more reliable transitions
-   - Ensure proper null checks and error handling throughout the system
 
 ### Required Cleanup Tasks (Priority Order)
 
-1. **Fix or Rewrite UI Screen Transition System** *(HIGHEST PRIORITY)*
-   - Redesign the `ScreenStateBase` class hierarchy to either:
-     - Make all screen state classes inherit from MonoBehaviour, OR
-     - Remove all MonoBehaviour dependencies (coroutines, etc.)
-   - Implement a proper state machine pattern for screen transitions
-   - Fix inheritance conflicts and add comprehensive error handling
-   - Consider using Unity's Animation system for transitions instead of custom code
-   - Ensure consistent variable naming and access patterns
 
 2. **Update Game UI Components**
    - Complete implementation of:
@@ -340,24 +223,6 @@ The UI screen transition system has several critical architectural flaws that pr
 
 ## Current Status (Session End - 2025-06-03)
 
-### ❌ **CRITICAL ISSUES REMAINING:**
-
-#### 1. **Level Loading Failure - ROOT CAUSE IDENTIFIED**
-- **Root Cause**: MainScene has no BlockMerger component, so `Object.FindObjectsOfType<BlockMerger>()` returns empty
-- **Attempted Fix**: Modified ScreenStateLoading to create BlockMerger component at runtime when none exists
-- **Status**: ❌ **FIX NOT TESTED/VERIFIED** - May still be failing
-
-#### 2. **Initial Screen Name Still Wrong**
-- **Issue**: UIInitializer still shows `initialScreenName = 'Intro'` instead of `'IntroScreen'`
-- **Expected**: Should be `'IntroScreen'` to match existing screen
-- **Impact**: "Initial screen Intro not found!" error on startup
-- **Note**: CreateMainScene.cs fix didn't take effect - investigation needed
-
-#### 3. **UI Canvas Components Missing**
-- **Issue**: UI Diagnostics reports "WARNING: [Screen] has no Canvas component!" for all screens
-- **Expected**: Screens should have Canvas components for visibility
-- **Impact**: Potential rendering issues
-- **Note**: Screens are functional despite warnings
 
 ### 📊 **TECHNICAL ANALYSIS:**
 
@@ -365,28 +230,8 @@ The UI screen transition system has several critical architectural flaws that pr
 - **BlockMerger**: Loads XML level files and creates GameObjects dynamically, NOT Unity scenes
 - **MainScene**: Single scene with dynamic level content loading
 - **testcamera**: Works because it HAS BlockMerger component (reference implementation)
-- **Issue**: MainScene was missing BlockMerger component entirely
 
-#### Level Loading (Still Broken):
-```
-ScreenStateLoading.TryLoadLevel() → No BlockMerger found → Runtime creation attempted → UNKNOWN STATUS
-```
 
-### 🎯 **IMMEDIATE PRIORITIES:**
-
-1. **Test the BlockMerger Fix**:
-   - Run MainScene and check if level loading now works
-   - Observe debug logs for errors
-   - Verify if level content actually appears
-
-2. **If Still Failing - Debug Further**:
-   - Check what specific error occurs with runtime BlockMerger creation
-   - Verify Level.Build() process
-   - Check level file paths and dependencies
-
-3. **Fix Remaining Issues**:
-   - Initial screen name persistence
-   - Canvas warnings if they affect functionality
 
 ### 📁 **ARCHITECTURE CONFIRMED:**
 - **UI**: Single MainCanvas with child screen GameObjects (no individual Canvas components)
@@ -397,103 +242,35 @@ ScreenStateLoading.TryLoadLevel() → No BlockMerger found → Runtime creation 
 
 ## Critical Issues Identified
 
-### 1. PowerUI Migration Status
-   - **ACHIEVEMENT**: ✅ **COMPLETE** - PowerUI fully removed, Unity UI system functional
-   - **ACHIEVEMENT**: ✅ **COMPLETE** - All helper scripts removed, project cleaned
-   - **ACHIEVEMENT**: ✅ **COMPLETE** - Button name mismatch fixed (PlayButton/ExitButton)
-   - **ACHIEVEMENT**: ✅ **COMPLETE** - Exit button now works in Unity Editor
-
-### 2. UI System Layout Issues
-   - **ANALYSIS COMPLETE**: ✅ **ROOT CAUSE IDENTIFIED** - Score/Keys UI created by UISetupHelper script
-   - **ISSUE**: UISetupHelper.CreatePlayerLabels() was parenting UI elements to main canvas instead of GameScreen
-   - **CODE ISSUE**: UI elements created with names "PlayerScoreLabel"/"PlayerKeysLabel" but referenced as "Score"/"Keys"
-   - **ACHIEVEMENT**: ✅ **FIXED** - UISetupHelper updated to parent UI elements to GameScreen GameObject
-   - **ACHIEVEMENT**: ✅ **FIXED** - UI element names corrected to match expected "Score"/"Keys" references
-   - **ACHIEVEMENT**: ✅ **MANUALLY FIXED** - Existing UI elements moved from MainCanvas to GameScreen in hierarchy
-   - **RESULT**: Game UI elements now properly contained within GameScreen and controlled by screen states
-
-### 3. Asset Integration Required
-   - **ACHIEVEMENT**: ✅ **COMPLETE** - All key assets transferred to proper Resources structure
-   - **FINAL ASSET LOCATIONS**:
-     * `Assets/Resources/UI/BlockBall_evolution_Logo.jpg` - Main game logo
-     * `Assets/Resources/UI/TeamLogo.jpg` - Intro screen logo  
-     * `Assets/Resources/UI/selector.dds` - Menu selection indicator
-     * `Assets/Resources/UI/Key_*.dds` - Key collectible graphics (5 keys)
-     * `Assets/Resources/UI/BlockBall.ttf` and `BlockBall_bold.ttf` - Custom fonts
-     * `Assets/Resources/UI/Background.dds` - PlayButton background image (newly added)
-     * `Assets/Resources/SFX/WinSound.wav` and `roll.wav` - Game audio files
-   - **ACHIEVEMENT**: ✅ Scripts updated to use proper Resources.Load() paths with "UI/" prefix
-   - **ACHIEVEMENT**: ✅ MainMenuUI updated to apply Background.dds to PlayButton
-   - **ARCHITECTURE**: Using Unity's Resources system for runtime asset loading (UI/ and SFX/ subfolders)
-
 ## 🎨 **UI DESIGN SPECIFICATIONS** (Based on Reference Images)
 
-### Main Menu Screen Design
-- **LAYOUT**: Clean, centered design with BLOCKBALL evolution logo prominently displayed
-- **LOGO**: BlockBall_evolution_Logo.jpg centered in upper portion
-- **MENU BUTTONS**: 
-  * Play button with custom background (Background.dds)
-  * Exit button with consistent styling
-  * Orange selector circle (selector.dds) for menu navigation
-- **FONT**: Custom BlockBall.ttf font family for consistent branding
-- **BACKGROUND**: Clean, uncluttered design focusing on logo and menu options
-
 ### In-Game UI Layout Specification
-- **KEYS DISPLAY**: Upper right corner - showing collected keys with Key_*.dds graphics
+- **KEYS DISPLAY**: Upper left corner - showing collected keys with Key_*.dds graphics
 - **TIMER**: Top center - countdown timer in MM:SS format
 - **DIAMONDS/SCORE**: Upper right area - diamond count display
 - **TIMEBAR**: Right side of screen - vertical progress bar
 - **INFO TEXT**: Lower area - contextual game information and messages
 - **LAYOUT PRINCIPLE**: HUD elements positioned around screen edges, keeping center clear for gameplay
 
-### Design Assets Integration Status
-- ✅ Logo: BlockBall_evolution_Logo.jpg (transferred to Resources/UI/)
-- ✅ Fonts: BlockBall.ttf & BlockBall_bold.ttf (transferred to Resources/UI/)
-- ✅ Button Background: Background.dds (transferred to Resources/UI/)
-- ✅ Menu Selector: selector.dds (transferred to Resources/UI/)
-- ✅ Key Graphics: Key_0-4.dds (transferred to Resources/UI/)
-- ✅ Intro Logo: TeamLogo.jpg (for intro screen)
-
 ---
 
 ## 📋 **NEXT SESSION TASKS**
 
 ### PRIORITY 1: UI Layout Implementation
-1. **Main Menu Visual Design**
-   - Apply BlockBall_evolution_Logo.jpg to main menu
-   - Style Play/Exit buttons with Background.dds and custom fonts
-   - Implement selector.dds for menu navigation
-   - Position elements according to reference design
 
 2. **In-Game UI Positioning**
-   - Move Keys display to upper right corner
-   - Center timer at top of screen
+   - Center timer at top center of screen
    - Position diamonds/score in upper right
    - Create and position timebar on right side
    - Move info text to lower screen area
 
 3. **Font Integration**
-   - Convert BlockBall.ttf to TextMeshPro font assets
    - Apply custom fonts across all UI elements
    - Ensure consistent typography throughout
 
 ### PRIORITY 2: Level Loading Debugging  
 1. **Diagnostic Implementation**
-   - Add detailed logging to Level.Build() method
-   - Compare testcamera vs MainScene setup differences
    - Identify missing components or configurations
 
-2. **Scene Comparison Analysis**
-   - Document component differences between working/non-working scenes
-   - Replicate successful testcamera setup in MainScene
-
-### PRIORITY 3: Final Polish
-1. **UI Flow Testing**
-   - Test complete Intro → Main Menu → Loading → Game flow
-   - Verify proper screen transitions and UI visibility
-   - Test Play/Exit button functionality
-
 2. **Integration Verification**
-   - Confirm asset loading from Resources paths
-   - Test game UI visibility only during gameplay
    - Verify audio integration (WinSound.wav, roll.wav)

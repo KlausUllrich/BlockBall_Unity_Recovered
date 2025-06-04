@@ -94,7 +94,6 @@ When confused or making mistakes:
 | Game Design       | root\Docs\Design\BlockBall_Evolution_Design_EN.md                                                     |
 
 ## Scenes
-- **MainScene**: Main scene for development (missing BlockMerger component - this was the issue)
 - **testcamera**: Working scene with proper BlockMerger setup (reference implementation)
 - **GUI**: Unknown purpose
 - **UITestScene**: Recent test scene, can be removed  
