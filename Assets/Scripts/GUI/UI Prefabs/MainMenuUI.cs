@@ -1,18 +1,26 @@
+/*---
+title: MainMenuUI
+description: Handles main menu panel button events and panel navigation
+role: Controls user interaction within the main menu panel and navigation to other panels
+relationships:
+  - Works with PanelGroupManager to show/hide panels
+  - Used by ScreenStateMenu for gameplay actions
+  - Parent of LevelSelectionPanel for navigation purposes
+components:
+  - Manages Play, Level Selection, and Exit buttons
+  - Handles panel navigation between MainMenuPanel and LevelSelectionPanel
+  - Receives messages from LevelSelectionManager via SendMessageUpwards
+---*/
+
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 /// <summary>
-/// Manages the MainMenuScreen UI elements.
+/// Controls the main menu panel functionality - focused only on button handling and panel navigation.
 /// </summary>
 public class MainMenuUI : MonoBehaviour 
 {
-    [Header("Logo and Title")]
-    public Image logo;
-    public TextMeshProUGUI title;
-    
     [Header("Main Menu Buttons")]
     public Button playButton;
     public Button selectLevelButton;
@@ -21,12 +29,6 @@ public class MainMenuUI : MonoBehaviour
     [Header("Panel Configuration")]
     public string mainMenuPanelId = "MainMenu";
     public string levelSelectionPanelId = "LevelSelection";
-    
-    [Header("Game UI")]
-    public GameObject inGameUIContainer;
-    public TextMeshProUGUI scoreLabel;
-    public TextMeshProUGUI keysLabel;
-    public TextMeshProUGUI infoLabel;
     
     private PanelGroupManager panelManager;
     
@@ -52,9 +54,6 @@ public class MainMenuUI : MonoBehaviour
 
     void OnEnable()
     {
-        // Hide any game UI elements when main menu is shown
-        HideGameUIElements();
-        
         // Make sure we have the panel manager reference
         if (panelManager == null)
         {
@@ -65,15 +64,8 @@ public class MainMenuUI : MonoBehaviour
             }
         }
         
-        // Setup the main menu layout and logo
-        SetupMainMenuLayout();
-        
-        // Wire up the level selection button if present
-        if (selectLevelButton != null)
-        {
-            selectLevelButton.onClick.RemoveAllListeners();
-            selectLevelButton.onClick.AddListener(ShowLevelSelection);
-        }
+        // Wire up buttons
+        SetupButtonHandlers();
         
         // Wait one frame before showing panel to ensure everything is initialized
         StartCoroutine(ShowMainMenuPanelNextFrame());
@@ -97,26 +89,57 @@ public class MainMenuUI : MonoBehaviour
         }
     }
     
-    private void HideGameUIElements()
+    /// <summary>
+    /// Sets up button click handlers
+    /// </summary>
+    private void SetupButtonHandlers()
     {
-        // Hide game UI elements that might be visible
-        var score = GameObject.Find("Score");
-        if (score != null) score.SetActive(false);
+        // Play button
+        if (playButton != null)
+        {
+            playButton.onClick.RemoveAllListeners();
+            playButton.onClick.AddListener(() => {
+                // Find the ScreenStateManager
+                ScreenStateManager manager = FindObjectOfType<ScreenStateManager>();
+                if (manager != null)
+                {
+                    // Change to game state
+                    manager.ChangeToScreenState(ScreenStateManager.ScreenStates.Game);
+                }
+            });
+        }
         
-        var keys = GameObject.Find("Keys");
-        if (keys != null) keys.SetActive(false);
+        // Select Level button
+        if (selectLevelButton != null)
+        {
+            selectLevelButton.onClick.RemoveAllListeners();
+            selectLevelButton.onClick.AddListener(ShowLevelSelection);
+        }
         
-        var timer = GameObject.Find("Timer");
-        if (timer != null) timer.SetActive(false);
-        
-        var diamonds = GameObject.Find("Diamonds");
-        if (diamonds != null) diamonds.SetActive(false);
-        
-        var timebar = GameObject.Find("Timebar");
-        if (timebar != null) timebar.SetActive(false);
-        
-        var infoText = GameObject.Find("InfoText");
-        if (infoText != null) infoText.SetActive(false);
+        // Exit button
+        if (exitButton != null)
+        {
+            exitButton.onClick.RemoveAllListeners();
+            exitButton.onClick.AddListener(() => {
+                #if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+                #else
+                Application.Quit();
+                #endif
+            });
+        }
+    }
+    
+    /// <summary>
+    /// Called when the back button in LevelSelectionPanel is pressed
+    /// </summary>
+    public void OnBackButtonPressed()
+    {
+        // Return to the main menu panel
+        if (panelManager != null)
+        {
+            panelManager.ShowPanel(mainMenuPanelId);
+        }
     }
     
     /// <summary>
@@ -131,91 +154,6 @@ public class MainMenuUI : MonoBehaviour
         else
         {
             Debug.LogError("PanelGroupManager not found! Cannot show level selection panel.");
-        }
-    }
-    
-    private void SetupMainMenuLayout()
-    {
-        // Load and apply the BlockBall evolution logo
-        if (logo != null)
-        {
-            var logoTexture = Resources.Load<Texture2D>("UI/BlockBall_evolution_Logo");
-            if (logoTexture != null)
-            {
-                logo.sprite = Sprite.Create(logoTexture, 
-                    new Rect(0, 0, logoTexture.width, logoTexture.height), 
-                    new Vector2(0.5f, 0.5f));
-            }
-        }
-        
-        // Apply custom background to PlayButton
-        if (playButton != null)
-        {
-            var buttonImage = playButton.GetComponent<Image>();
-            if (buttonImage != null)
-            {
-                var backgroundTexture = Resources.Load<Texture2D>("UI/Background");
-                if (backgroundTexture != null)
-                {
-                    buttonImage.sprite = Sprite.Create(backgroundTexture,
-                        new Rect(0, 0, backgroundTexture.width, backgroundTexture.height),
-                        new Vector2(0.5f, 0.5f));
-                }
-            }
-        }
-        
-        // Apply same styling to Select Level button if it exists
-        if (selectLevelButton != null)
-        {
-            var buttonImage = selectLevelButton.GetComponent<Image>();
-            if (buttonImage != null)
-            {
-                var backgroundTexture = Resources.Load<Texture2D>("UI/Background");
-                if (backgroundTexture != null)
-                {
-                    buttonImage.sprite = Sprite.Create(backgroundTexture,
-                        new Rect(0, 0, backgroundTexture.width, backgroundTexture.height),
-                        new Vector2(0.5f, 0.5f));
-                }
-            }
-        }
-        
-        // Apply custom font to menu elements if available
-        var customFont = Resources.Load<Font>("UI/BlockBall");
-        if (customFont != null)
-        {
-            ApplyFontToMenuButtons(customFont);
-        }
-    }
-    
-    private void ApplyFontToMenuButtons(Font font)
-    {
-        if (playButton != null)
-        {
-            var playText = playButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (playText != null)
-            {
-                // Note: TextMeshPro uses different font system
-                playText.font = Resources.Load<TMPro.TMP_FontAsset>("UI/BlockBall SDF");
-            }
-        }
-        
-        if (selectLevelButton != null)
-        {
-            var selectText = selectLevelButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (selectText != null)
-            {
-                selectText.font = Resources.Load<TMPro.TMP_FontAsset>("UI/BlockBall SDF");
-            }
-        }
-        
-        if (exitButton != null)
-        {
-            var exitText = exitButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (exitText != null)
-            {
-                exitText.font = Resources.Load<TMPro.TMP_FontAsset>("UI/BlockBall SDF");
-            }
         }
     }
 }

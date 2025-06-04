@@ -1,0 +1,8 @@
+Blockball todos
+
+- ensure Docs/Status/ documents are up-to-date
+
+
+Menu:
+- rename StandardUIManager to something better: ScreenManager
+- LevelSelectionPanael has a LevelSelectionManager.cs, which does some Panel Management. Why? Remove!

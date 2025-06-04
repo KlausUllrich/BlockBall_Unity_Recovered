@@ -1,3 +1,18 @@
+/*---
+title: LevelSelectionManager
+description: Manages the level selection functionality
+role: Dynamically loads and displays available game levels for selection
+relationships:
+  - Attached to LevelSelectionPanel GameObject
+  - Communicates with MainMenuUI via SendMessageUpwards
+  - Uses BlockMerger to load selected levels
+components:
+  - Populates level list from Resources/Levels folder
+  - Creates level selection buttons dynamically
+  - Handles level loading when a level is selected
+  - Sends back button events to parent components
+---*/
+
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,14 +31,12 @@ public class LevelSelectionManager : MonoBehaviour
     public Button backButton; // Button to return to main menu
     public GameObject levelButtonPrefab; // Button prefab for level items
     
-    [Header("Panel Management")]
-    public string mainMenuPanelId = "MainMenu"; // ID of the main menu panel in PanelGroupManager
-    public string levelSelectionPanelId = "LevelSelection"; // ID of this panel in PanelGroupManager
+    [Header("Settings")]
+    public bool autoPopulateOnEnable = true; // Whether to automatically populate the level list when enabled
     
     [Header("Settings")]
     public string levelsFolder = "Levels"; // Folder inside Resources where levels are stored
     
-    private PanelGroupManager panelManager;
     private BlockMerger blockMerger;
     private List<string> levelNames = new List<string>();
 
@@ -32,18 +45,15 @@ public class LevelSelectionManager : MonoBehaviour
         // Find BlockMerger
         blockMerger = FindObjectOfType<BlockMerger>();
         
-        // Find panel manager
-        panelManager = GetComponentInParent<PanelGroupManager>();
-        if (panelManager == null)
-        {
-            panelManager = FindObjectOfType<PanelGroupManager>();
-        }
-        
         // Set up back button
         if (backButton != null)
         {
             backButton.onClick.RemoveAllListeners();
-            backButton.onClick.AddListener(ReturnToMainMenu);
+            backButton.onClick.AddListener(() => {
+                // Send a message upwards to notify parent components that back was pressed
+                // This allows MainMenuUI or other controllers to handle the navigation
+                SendMessageUpwards("OnBackButtonPressed", SendMessageOptions.DontRequireReceiver);
+            });
         }
     }
     
@@ -53,35 +63,7 @@ public class LevelSelectionManager : MonoBehaviour
         PopulateLevelList();
     }
     
-    /// <summary>
-    /// Shows the level selection panel using the panel manager
-    /// </summary>
-    public void ShowLevelSelection()
-    {
-        if (panelManager != null)
-        {
-            panelManager.ShowPanel(levelSelectionPanelId);
-        }
-        else
-        {
-            Debug.LogError("No PanelGroupManager found!");
-        }
-    }
-    
-    /// <summary>
-    /// Returns to the main menu panel
-    /// </summary>
-    public void ReturnToMainMenu()
-    {
-        if (panelManager != null)
-        {
-            panelManager.ShowPanel(mainMenuPanelId);
-        }
-        else
-        {
-            Debug.LogError("No PanelGroupManager found!");
-        }
-    }
+    // Panel navigation methods removed - panel management should be handled by MainMenuUI
     
     /// <summary>
     /// Loads the specified level by setting it in BlockMerger and triggering its LoadLevel method
@@ -106,7 +88,7 @@ public class LevelSelectionManager : MonoBehaviour
     /// <summary>
     /// Populates the level selection panel with available levels
     /// </summary>
-    private void PopulateLevelList()
+    public void PopulateLevelList()
     {
         CreateLevelButtons();
     }

@@ -25,6 +25,16 @@ public class ScreenStateManager : Singleton<ScreenStateManager>
 	// Use this for initialization
 	void Start ()
 	{
+		// Make sure we have a reference to StandardUIManager
+		if (m_xStandardUIManager == null)
+		{
+			m_xStandardUIManager = FindObjectOfType<StandardUIManager>();
+			if (m_xStandardUIManager == null)
+			{
+				Debug.LogError("StandardUIManager not found in scene! UI navigation will not work properly.");
+			}
+		}
+		
 		WorldStateManager.GamePaused = true;
 #if UNITY_EDITOR
 		m_xCurrentScreenState = CreateScreenState(xEditorStartScreenState);

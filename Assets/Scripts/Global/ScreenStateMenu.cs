@@ -1,3 +1,16 @@
+/*---
+title: ScreenStateMenu
+description: Handles the Menu screen state within the game's screen state system
+role: Initializes the main menu screen when the game state is changed to Menu state
+relationships:
+  - Extends ScreenStateBase
+  - Used by ScreenStateManager to control menu state
+  - Connects to MainMenuUI for button handlers
+components:
+  - Uses StandardUIManager to activate MainMenu screen
+  - Finds and connects to MainMenuUI buttons for gameplay actions
+---*/
+
 using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
@@ -14,28 +27,67 @@ public class ScreenStateMenu : ScreenStateBase
 	// Use this for initialization
 	public override void Show ()
 	{
-		// Switch to the main menu screen using the new UI system
-		m_xScreenStateManager.m_xStandardUIManager.ChangeScreen("MainMenu");
+		// Show the main menu screen directly
+		if (m_xScreenStateManager != null && m_xScreenStateManager.m_xStandardUIManager != null) 
+		{
+			m_xScreenStateManager.m_xStandardUIManager.ChangeScreen("MainMenu");
+			
+			// Start a coroutine to find and connect to MainMenuUI after the screen is shown
+			MonoBehaviour monoBehaviour = m_xScreenStateManager as MonoBehaviour;
+			if (monoBehaviour != null)
+			{
+				monoBehaviour.StartCoroutine(ConnectToMainMenuUI());
+			}
+		}
+		else
+		{
+			Debug.LogError("ScreenStateManager or StandardUIManager reference is null! Cannot show MainMenu screen.");
+		}
+	}
+	
+	// Find MainMenuUI after a delay to allow the screen to activate
+	private IEnumerator ConnectToMainMenuUI()
+	{
+		// Wait for one frame to ensure the MainMenu screen is active
+		yield return null;
 		
-		// Instead of directly trying to find buttons, let the new panel system handle UI interactions
-		// The MainMenuUI component wires up the buttons within its own OnEnable method
+		// Find any MainMenuUI component (active or inactive)
+		MainMenuUI mainMenuUI = null;
 		
-		// Look for MainMenuUI component which will handle button connections
-		MainMenuUI mainMenuUI = GameObject.FindObjectOfType<MainMenuUI>();
+		// First try to find it directly from the MainMenu screen
+		Transform mainMenuScreen = m_xScreenStateManager.m_xStandardUIManager.transform.Find("MainMenuScreen");
+		if (mainMenuScreen != null)
+		{
+			// Look in the panels inside MainMenuScreen for MainMenuUI
+			Transform mainMenuPanel = mainMenuScreen.Find("MainMenuPanel");
+			if (mainMenuPanel != null)
+			{
+				mainMenuUI = mainMenuPanel.GetComponent<MainMenuUI>();
+			}
+		}
+		
+		// If not found, fall back to a general search
+		if (mainMenuUI == null)
+		{
+			mainMenuUI = GameObject.FindObjectOfType<MainMenuUI>();
+		}
+
 		if (mainMenuUI == null)
 		{
 			Debug.LogWarning("MainMenuUI component not found. Button connections will not be automatic.");
 		}
-		else
+		else 
 		{
 			// Add callbacks for game logic if needed
 			if (mainMenuUI.playButton != null)
 			{
+				mainMenuUI.playButton.onClick.RemoveListener(Play); // Remove first to prevent duplicates
 				mainMenuUI.playButton.onClick.AddListener(Play);
 			}
 			
 			if (mainMenuUI.exitButton != null)
 			{
+				mainMenuUI.exitButton.onClick.RemoveListener(Exit); // Remove first to prevent duplicates
 				mainMenuUI.exitButton.onClick.AddListener(Exit);
 			}
 			

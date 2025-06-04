@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Test level file for BlockBall -->
+<level>
+  <metadata>
+    <name>Level 1</name>
+    <difficulty>Easy</difficulty>
+    <description>Test level for development</description>
+  </metadata>
+  <blocks>
+    <!-- Simple level layout -->
+  </blocks>
+</level>

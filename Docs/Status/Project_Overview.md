@@ -65,8 +65,14 @@ The game follows a component-based architecture with several distinct systems:
 - Uses TextMeshPro for all text rendering
 - `UISetupHelper`: Utility for configuring UI components
 - Single `MainCanvas` architecture with UI screens as child GameObjects
-- **STATUS**: Game UI partially working (score/keys display functional), but screen transitions need completion
-- **REMAINING**: Complete UI screen prefabs and fix menu→game transitions
+- **Clean UI Architecture**:
+  - `ScreenStateManager`: Controls high-level game states (Menu, Game, Editor)
+  - `StandardUIManager`: Shows/hides screen GameObjects based on current state
+  - `PanelGroupManager`: Manages panels within each screen (e.g., MainMenu, LevelSelection)
+  - `MainMenuUI`: Handles button events and panel navigation within MainMenuScreen
+  - `LevelSelectionManager`: Handles level listing and selection functionality
+- **STATUS**: UI architecture refactored and simplified; screen transitions and panel navigation working
+- **REMAINING**: Complete final UI styling and refinement
 
 ### Technical Implementation
 - Uses Unity's Rigidbody physics for ball movement
@@ -232,6 +238,15 @@ The UI screen transition system has several critical architectural flaws that pr
 - **testcamera**: Works because it HAS BlockMerger component (reference implementation)
 
 
+
+## Next Tasks
+
+### 🚩 **Priority Task: Fix Level Loading from Level Selection Menu**
+- The UI architecture is now working correctly, but level loading from the LevelSelectionManager is not functioning
+- When clicking on level buttons, they should load the selected level but this is currently not working
+- Verify that BlockMerger is properly connected and receiving the level name
+- Check that level files are being found in Resources/Levels with proper naming (_campain suffix)
+- Test the path from level button click → LoadLevel() → BlockMerger.LoadLevel()
 
 ### 📁 **ARCHITECTURE CONFIRMED:**
 - **UI**: Single MainCanvas with child screen GameObjects (no individual Canvas components)
