@@ -37,6 +37,7 @@ public class LevelSelectionManager : MonoBehaviour
     public bool autoPopulateOnEnable = true; // Whether to automatically populate the level list when enabled
     
     private BlockMerger blockMerger;
+    private ScreenStateManager screenStateManager;
     // private List<string> levelNames = new List<string>(); // No longer directly used in the same way
 
     void Awake()
@@ -46,6 +47,9 @@ public class LevelSelectionManager : MonoBehaviour
 
         // Find BlockMerger
         blockMerger = FindObjectOfType<BlockMerger>();
+        
+        // Find ScreenStateManager
+        screenStateManager = FindObjectOfType<ScreenStateManager>();
         
         // Set up back button
         if (backButton != null)
@@ -79,7 +83,18 @@ public class LevelSelectionManager : MonoBehaviour
         {
             // Assign level name to BlockMerger and trigger load
             blockMerger.LevelToLoad = levelName;
-            blockMerger.LoadLevel();
+            
+            // Trigger state transition to loading screen, just like the Play button
+            if (screenStateManager != null)
+            {
+                screenStateManager.ChangeToScreenState(ScreenStateManager.ScreenStates.Loding);
+            }
+            else
+            {
+                Debug.LogError("ScreenStateManager not found! Cannot transition to loading state.");
+                // Fallback: load level directly without state transition
+                blockMerger.LoadLevel();
+            }
         }
         else
         {
@@ -209,4 +224,3 @@ public class LevelSelectionManager : MonoBehaviour
         rect.sizeDelta = new Vector2(parentWidth > 0 ? parentWidth * 0.9f : 600, 150);
     }
 }
-    
