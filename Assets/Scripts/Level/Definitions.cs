@@ -12,5 +12,5 @@ public class Definitions
 	public static string LevelSetFileExtention = "level_set";
 	public static string LevelSetListFileExtention = "level_set_list";
 
-	public static float BallTouchingTheGroundThresholdAsDotProductResult = 0.866f; //> 30°
+	public static float BallTouchingTheGroundThresholdAsDotProductResult = 0.707f; //> 45° (was 30°, increased for more forgiving ground detection)
 }

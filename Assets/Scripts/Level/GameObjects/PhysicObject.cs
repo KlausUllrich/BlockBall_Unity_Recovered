@@ -29,6 +29,9 @@ public class PhysicObjekt : GrafikObjekt
 
     protected List<GameObject> axGroundContactGameObjects = new List<GameObject>();
 
+    // TEST: Add option to use Unity's built-in gravity instead of custom gravity system
+    public bool UseUnityGravity = false;  // Set to true in Inspector to test Unity gravity
+
     //-----------------------------------------------------------------------------------------------------------------
     public virtual void SetGravityDirection(Vector3 vDirection)
     {
@@ -109,7 +112,35 @@ public class PhysicObjekt : GrafikObjekt
     //-----------------------------------------------------------------------------------------------------------------
     protected virtual void FixedUpdate()
     {
-        this.GetComponent<Rigidbody>().AddForce(Gravity);
+        if (!UseUnityGravity)
+        {
+            // Original custom gravity system
+            this.GetComponent<Rigidbody>().AddForce(Gravity);
+        }
+        // If UseUnityGravity is true, let Unity handle gravity automatically
+        // Unity's gravity will be applied based on Physics.gravity and Rigidbody.useGravity
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    void Start()
+    {
+        // Configure gravity system based on UseUnityGravity setting
+        var rigidbody = this.GetComponent<Rigidbody>();
+        
+        if (UseUnityGravity)
+        {
+            // Use Unity's built-in gravity system
+            rigidbody.useGravity = true;
+            // Set Unity's global gravity to match our custom gravity direction and strength
+            Physics.gravity = this.vGravityDirection * this.fGravityStrength;
+            UnityEngine.Debug.Log($"Using Unity gravity: {Physics.gravity}");
+        }
+        else
+        {
+            // Use custom gravity system (original behavior)
+            rigidbody.useGravity = false;
+            UnityEngine.Debug.Log($"Using custom gravity: {this.Gravity}");
+        }
     }
 
     //-----------------------------------------------------------------------------------------------------------------

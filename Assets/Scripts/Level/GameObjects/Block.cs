@@ -198,8 +198,9 @@ public class Block : GrafikObjekt
 			var vectorToCollition = pCollision.contacts[0].normal;
 			
 			var pPlayerPhysicObject = pCollision.gameObject.GetComponent<PhysicObjekt>();
-			var s = Vector3.Dot(vectorToCollition.normalized, pPlayerPhysicObject.GravityDirection.normalized);	
-			if (s > Definitions.BallTouchingTheGroundThresholdAsDotProductResult)
+			// Fix: Use same logic as PhysicObject.cs - negate the dot product to check angle from gravity direction
+			var fDot = Vector3.Dot(vectorToCollition.normalized, pPlayerPhysicObject.GravityDirection.normalized);	
+			if ((-fDot) > Definitions.BallTouchingTheGroundThresholdAsDotProductResult)
 			{
                 this.SetContact(true);
             }
