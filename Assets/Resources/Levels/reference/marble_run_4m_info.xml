@@ -1,0 +1,17 @@
+<BlockBallEvolution_LevelInfo>
+    <LevelName>marble run</LevelName>
+    <Creator>4Minds</Creator>
+    <TextureSet id="0" />
+    <Thumbnail></Thumbnail>
+    <SkyBox>bb_skybox_1</SkyBox>
+    <Screenshot></Screenshot>
+    <Difficulty>easy</Difficulty>
+    <Music>marble_run.ogg</Music>
+    <Medal time="130" />
+    <Medal time="160" />
+    <Medal time="210" />
+    <Medal time="300" />
+    <LevelCenter posx="380.0000" posy="-1260.0000" posz="-540.0000" />
+    <LevelZoom zoom="2168.5017" />
+    <LevelOrientation orix="0.0000" oriy="0.7071" oriz="0.0000" oriw="-0.7071" />
+</BlockBallEvolution_LevelInfo>

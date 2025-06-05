@@ -21,6 +21,8 @@ The project is based on an incomplete game development over 10 years ago. It sho
 
 ## CRITICAL ARCHITECTURE RULES (NEVER VIOLATE)
 
+Always ensure when analysing a file you read the full file
+
 ### UI System Architecture
 - **ONE MainCanvas** with all UI screens as child GameObjects
 - UI screens are **GameObjects with RectTransform + CanvasGroup** 

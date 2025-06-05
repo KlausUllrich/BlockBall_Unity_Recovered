@@ -1,0 +1,17 @@
+<BlockBallEvolution_LevelInfo>
+    <LevelName>blockjump</LevelName>
+    <Creator>4Minds</Creator>
+    <TextureSet id="0" />
+    <Thumbnail></Thumbnail>
+    <SkyBox>bb_skybox_1</SkyBox>
+    <Screenshot></Screenshot>
+    <Difficulty>advanced</Difficulty>
+    <Music>blockjump.ogg</Music>
+    <Medal time="140" />
+    <Medal time="180" />
+    <Medal time="330" />
+    <Medal time="600" />
+    <LevelCenter posx="360.0000" posy="-620.0000" posz="-140.0000" />
+    <LevelZoom zoom="1726.0359" />
+    <LevelOrientation orix="0.0000" oriy="0.0000" oriz="0.0000" oriw="1.0000" />
+</BlockBallEvolution_LevelInfo>

@@ -1,0 +1,4 @@
+<BlockBallEvolutionLevel>
+    <Object type="Scene" model="1.mesh" posx="0" posy="-7000" posz="0" orix="0.0000" oriy="0.0000" oriz="0.0000" oriw="1.0000" textureID="0" />
+    <Object type="StartPoint" model="start.mesh" posx="0" posy="0" posz="0" orix="0.0000" oriy="0.0000" oriz="0.0000" oriw="1.0000" textureID="0" />
+</BlockBallEvolutionLevel>

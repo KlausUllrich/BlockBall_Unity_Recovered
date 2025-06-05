@@ -585,7 +585,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d3886a881cd57f4f9dc99a5f7e0add9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  LevelToLoad: ancient_key_campain
+  LevelToLoad: ancient_key
 --- !u!1 &327517626
 GameObject:
   m_ObjectHideFlags: 0
@@ -924,7 +924,6 @@ MonoBehaviour:
   levelButtonPrefab: {fileID: 8174628831403599692, guid: ed1cdee18d7c3424fb268b215e54ea0e,
     type: 3}
   autoPopulateOnEnable: 1
-  levelsFolder: Levels
 --- !u!1 &428336097
 GameObject:
   m_ObjectHideFlags: 0
@@ -3502,7 +3501,6 @@ MonoBehaviour:
   m_Script: {fileID: 850560808}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationSpeed: 200
 --- !u!114 &1834520850
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3570,7 +3568,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47028a0cccd73374f9969d8ba2d0cc71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_xStandardUIManager: {fileID: 0}
+  m_xStandardUIManager: {fileID: 171743459}
   xEditorStartScreenState: 2
 --- !u!4 &1940480893
 Transform:

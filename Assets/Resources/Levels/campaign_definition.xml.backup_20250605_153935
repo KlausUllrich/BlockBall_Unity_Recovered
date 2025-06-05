@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CampaignDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <LevelSet Name="beginner" DisplayName="Beginner">
+    <Level FileName="first_roll_campain" DisplayName="First Roll" />
+  </LevelSet>
+  <LevelSet Name="easy" DisplayName="Easy">
+    <Level FileName="another_tutorial_level_placeholder" DisplayName="Gravity Basics" />
+  </LevelSet>
+  <LevelSet Name="intermediate" DisplayName="Intermediate">
+    <Level FileName="ancient_key_campain" DisplayName="The Ancient Key" />
+  </LevelSet>
+  <LevelSet Name="advanced" DisplayName="Advanced">
+    <Level FileName="a_maze_thing_campain" DisplayName="A Maze Thing" />
+  </LevelSet>
+  <LevelSet Name="hard" DisplayName="Hard">
+    <Level FileName="ruin_puzzle_placeholder" DisplayName="Ruin Puzzle" />
+  </LevelSet>
+  <LevelSet Name="bonus" DisplayName="Bonus">
+    <!-- Example: <Level FileName="bonus_level_1" DisplayName="Super Secret Bonus" /> -->
+  </LevelSet>
+</CampaignDefinition>

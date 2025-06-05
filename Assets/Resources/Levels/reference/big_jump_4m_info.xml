@@ -1,0 +1,17 @@
+<BlockBallEvolution_LevelInfo>
+    <LevelName>big jump</LevelName>
+    <Creator>4Minds</Creator>
+    <TextureSet id="0" />
+    <Thumbnail></Thumbnail>
+    <SkyBox>bb_skybox_5</SkyBox>
+    <Screenshot></Screenshot>
+    <Difficulty>easy</Difficulty>
+    <Music>big_jump.ogg</Music>
+    <Medal time="70" />
+    <Medal time="110" />
+    <Medal time="180" />
+    <Medal time="360" />
+    <LevelCenter posx="-60.0000" posy="-40.0000" posz="-20.0000" />
+    <LevelZoom zoom="3552.1262" />
+    <LevelOrientation orix="0.0000" oriy="1.0000" oriz="0.0000" oriw="0.0000" />
+</BlockBallEvolution_LevelInfo>

@@ -1,0 +1,34 @@
+<BlockBallEvolutionLevelSets>
+  <LevelSet name="beginner">
+    <Level name="first roll"         file="first_roll_4m" />
+    <Level name="wall ride"         file="wall_ride_4m" />
+    <Level name="ancient key"         file="ancient_key_4m" />
+    <Level name="easy loop"         file="easy_loop_4m" />
+  </LevelSet>
+  <LevelSet name="easy">
+    <Level name="marble run"         file="marble_run_4m" />
+    <Level name="just speed"         file="just_speed_4m" />
+    <Level name="big jump"         file="big_jump_4m" />
+  </LevelSet>
+  <LevelSet name="intermediate">
+    <Level name="the box"         file="the_box_4m" />
+    <Level name="blue way"         file="blue_way_4m" />
+    <Level name="the bridge"         file="the_bridge_4m" />
+  </LevelSet>
+  <LevelSet name="advanced">
+    <Level name="blockjump"         file="blockjump_4m" />
+    <Level name="speed circut"         file="speed_circut_4m" />
+    <Level name="crossroad"         file="crossroads_4m" />
+  </LevelSet>
+  <LevelSet name="hard">
+    <Level name="small detour"         file="small_detour_4m" />
+    <Level name="late jumps"         file="late_jumps_4m" />
+    <Level name="a maze thing"         file="a_maze_thing_4m" />
+    <Level name="thin grids"         file="thin_grids_4m" />
+  </LevelSet>
+  <LevelSet name="bonus">
+    <Level name="bonus level 1"         file="bonus_level_1_4m" />
+    <Level name="bonus level 2"         file="bonus_level_2_4m" />
+    <Level name="bonus level 3"         file="bonus_level_3_4m" />
+  </LevelSet>
+</BlockBallEvolutionLevelSets>

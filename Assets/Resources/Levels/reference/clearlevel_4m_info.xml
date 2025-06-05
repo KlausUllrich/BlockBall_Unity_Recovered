@@ -1,0 +1,16 @@
+<BlockBallEvolution_LevelInfo>
+    <LevelName>your levelname</LevelName>
+    <Creator>your name</Creator>
+     <Thumbnail></Thumbnail>
+    <SkyBox>bb_skybox_1</SkyBox>
+    <Screenshot></Screenshot>
+    <Difficulty>easy</Difficulty>
+    <Music></Music>
+    <Medal time="60" />
+    <Medal time="120" />
+    <Medal time="180" />
+    <Medal time="240" />
+    <LevelCenter posx="0.0000" posy="0.0000" posz="-20.0000" />
+    <LevelZoom zoom="80.0000" />
+    <LevelOrientation orix="0.0000" oriy="0.0000" oriz="0.0000" oriw="1.0000" />
+</BlockBallEvolution_LevelInfo>

@@ -1,0 +1,8 @@
+ <Campain>
+	<Levelset Name="beginner" />
+	<Levelset Name="easy" />
+	<Levelset Name="intermediate" />
+	<Levelset Name="advanced" />
+	<Levelset Name="hard" />
+	<Levelset Name="bonus" />
+ </Campain>

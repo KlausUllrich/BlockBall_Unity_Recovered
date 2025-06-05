@@ -1,0 +1,17 @@
+<BlockBallEvolution_LevelInfo>
+    <LevelName>bonus level 1</LevelName>
+    <Creator>4Minds</Creator>
+    <TextureSet id="1" />
+    <Thumbnail></Thumbnail>
+    <SkyBox>bb_skybox_3</SkyBox>
+    <Screenshot></Screenshot>
+    <Difficulty>bonus</Difficulty>
+    <Music>bonus_level_1.ogg</Music>
+    <Medal time="10" />
+    <Medal time="50" />
+    <Medal time="105" />
+    <Medal time="170" />
+    <LevelCenter posx="440.0000" posy="-560.0000" posz="-240.0000" />
+    <LevelZoom zoom="2020.6930" />
+    <LevelOrientation orix="0.0000" oriy="0.0000" oriz="0.0000" oriw="1.0000" />
+</BlockBallEvolution_LevelInfo>

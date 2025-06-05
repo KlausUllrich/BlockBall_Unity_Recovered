@@ -113,7 +113,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d3886a881cd57f4f9dc99a5f7e0add9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  LevelToLoad: ancient_key_campain
+  LevelToLoad: ancient_key
 --- !u!1 &327524113
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,0 +1,17 @@
+<BlockBallEvolution_LevelInfo>
+    <LevelName>easy loop</LevelName>
+    <Creator>4Minds</Creator>
+    <TextureSet id="0" />
+    <Thumbnail></Thumbnail>
+    <SkyBox>bb_skybox_2</SkyBox>
+    <Screenshot></Screenshot>
+    <Difficulty>beginner</Difficulty>
+    <Music>easy_loop.ogg</Music>
+    <Medal time="65" />
+    <Medal time="130" />
+    <Medal time="240" />
+    <Medal time="540" />
+    <LevelCenter posx="980.0000" posy="-1600.0000" posz="-340.0000" />
+    <LevelZoom zoom="2315.1675" />
+    <LevelOrientation orix="0.0000" oriy="-0.7071" oriz="0.0000" oriw="0.7071" />
+</BlockBallEvolution_LevelInfo>

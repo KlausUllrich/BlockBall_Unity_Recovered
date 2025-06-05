@@ -1,0 +1,17 @@
+<BlockBallEvolution_LevelInfo>
+    <LevelName>crossroads</LevelName>
+    <Creator>4Minds</Creator>
+    <TextureSet id="0" />
+    <Thumbnail></Thumbnail>
+    <SkyBox>bb_skybox_3</SkyBox>
+    <Screenshot></Screenshot>
+    <Difficulty>advanced</Difficulty>
+    <Music>crossroads.ogg</Music>
+    <Medal time="420" />
+    <Medal time="540" />
+    <Medal time="720" />
+    <Medal time="900" />
+    <LevelCenter posx="820.0000" posy="-120.0000" posz="120.0000" />
+    <LevelZoom zoom="3912.0327" />
+    <LevelOrientation orix="0.0000" oriy="0.0000" oriz="0.0000" oriw="1.0000" />
+</BlockBallEvolution_LevelInfo>

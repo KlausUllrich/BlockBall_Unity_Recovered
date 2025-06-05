@@ -1,9 +1,28 @@
+/*
+# ---
+# Intent: Represents a single game level, managing its definition, game objects, and metadata.
+# Architecture:
+#   - Loaded and managed by the game's level loading system (e.g., BlockMerger, LevelSelectionManager).
+#   - Parses .level XML files to instantiate game objects (Blocks, StartObject, Goal, etc.) and metadata.
+#   - Holds intrinsic level data (LevelIntrinsicData) and a collection of all BaseObjects within the level.
+# Relations:
+#   - Level.cs: This file.
+#   - LevelIntrinsicData.cs: Defines the structure for the <MetaData> section in .level files.
+#   - BaseObject.cs (and its derivatives like Block.cs, StartObject.cs, Goal.cs): Represents individual game elements within the level.
+#   - Definitions.cs: Provides constants like level file paths and extensions.
+#   - XmlUtils.cs: Utility functions for XML parsing.
+#   - CampaignManager.cs: While not directly used by Level.cs for loading itself, CampaignManager uses level filenames which Level.cs then loads.
+#   - Level files (.level): XML files that describe the level structure and content.
+# ---
+*/
 using UnityEngine;
 using System;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO; // For StringReader
+using AssemblyCSharp.LevelData; // For our new data classes
 
 namespace AssemblyCSharp
 {
@@ -67,7 +86,8 @@ namespace AssemblyCSharp
 
         // -------------------------------------------------------------------------------------------
         public string FileName;
-        public LevelInfo LevelInfo;
+        public LevelInfo LevelInfo; // Will likely be deprecated by IntrinsicData
+        public LevelIntrinsicData IntrinsicData { get; private set; }
 
         public Dictionary<PositionHashEntry, Block> PositionHash = new Dictionary<PositionHashEntry, Block>();
         public List<List<Block>> GroupList = new List<List<Block>>();
@@ -99,13 +119,80 @@ namespace AssemblyCSharp
                 
             var levelRoot = new GameObject("LevelCubes");
             // ToDo: Testen ob es mit StreamReader auch geht
-            var levelSetFilePath = Definitions.relLevelFolder + FileName + "." + Definitions.LevelFileExtention;
-            XmlDocument xml = new XmlDocument();
-            xml.Load(levelSetFilePath);
-    
-            // Create each Object
-            XmlNode root = xml.FirstChild;
-            foreach (XmlNode pNode in root.ChildNodes)
+            // Path for Resources.Load should be relative to any Resources folder,
+            // e.g., "Levels/first_roll_campain" if files are in Assets/Resources/Levels/
+            // FileName (from Level.FileName) does not include the .level extension.
+            // Construct the direct file path. Definitions.relLevelFolder.ToString() gives "Assets/Resources/Levels/"
+            string levelFilePath = Definitions.relLevelFolder.ToString() + FileName + "." + Definitions.LevelFileExtention;
+            
+            // For robust logging, let's also see the absolute path this resolves to
+            string absolutePathForLog = "";
+            try 
+            {
+                absolutePathForLog = System.IO.Path.GetFullPath(levelFilePath);
+            }
+            catch 
+            {
+                absolutePathForLog = "Error resolving full path for: " + levelFilePath;
+            }
+
+            Debug.Log($"[Level.Build] FileName: '{FileName}'. Attempting to load XML directly from relative path: '{levelFilePath}', which should resolve to absolute path: '{absolutePathForLog}'");
+            
+            XmlDocument xmlDoc = new XmlDocument();
+            try
+            {
+                xmlDoc.Load(levelFilePath); // Directly load from the file system path
+            }
+            catch (System.IO.FileNotFoundException ex)
+            {
+                Debug.LogError($"Direct XML Load Error: File not found at path: '{levelFilePath}' (resolved to '{absolutePathForLog}'). Original Exception: {ex.Message}");
+                throw new System.IO.FileNotFoundException($"Level file not found at path: {levelFilePath}. Ensure the file exists at this location relative to the project root.", levelFilePath, ex);
+            }
+            catch (System.Xml.XmlException ex)
+            {
+                 Debug.LogError($"Direct XML Load Error: XML parsing error from file: '{levelFilePath}' (resolved to '{absolutePathForLog}'). Original Exception: {ex.Message}");
+                 throw new System.Xml.XmlException($"Level file XML error: {levelFilePath}. {ex.Message}", ex);
+            }
+            catch (System.Exception ex) // Catch any other potential exceptions during load
+            {
+                Debug.LogError($"Direct XML Load Error: An unexpected error occurred while loading file: '{levelFilePath}' (resolved to '{absolutePathForLog}'). Original Exception: {ex.Message}");
+                throw; 
+            } // Load XML from the TextAsset's content
+
+            // Get the root element (should be <BlockBallLevel>)
+            XmlElement blockBallLevelNode = xmlDoc.DocumentElement;
+            if (blockBallLevelNode == null || blockBallLevelNode.Name != "BlockBallLevel")
+            {
+                throw new XmlException("Expected <BlockBallLevel> root node in level file: " + FileName);
+            }
+
+            // Parse MetaData
+            XmlNode metaDataNode = blockBallLevelNode.SelectSingleNode("MetaData");
+            if (metaDataNode != null)
+            {
+                XmlSerializer metaSerializer = new XmlSerializer(typeof(LevelIntrinsicData));
+                using (StringReader reader = new StringReader(metaDataNode.OuterXml))
+                {
+                    this.IntrinsicData = (LevelIntrinsicData)metaSerializer.Deserialize(reader);
+                }
+            }
+            else
+            {
+                Debug.LogWarning("<MetaData> section not found in level: " + FileName + ". Using default intrinsic data.");
+                this.IntrinsicData = new LevelIntrinsicData(); // Initialize with defaults if not found
+            }
+
+            // Get the BB3Level node for game object creation
+            XmlNode bb3LevelNode = blockBallLevelNode.SelectSingleNode("BB3Level");
+            if (bb3LevelNode == null)
+            {
+                throw new XmlException("<BB3Level> node not found within <BlockBallLevel> in level file: " + FileName);
+            }
+            
+            // Create each Object from the BB3Level node
+            // XmlNode root = xml.FirstChild; // Old: root was DocumentElement
+            // Now, iterate over children of bb3LevelNode
+            foreach (XmlNode pNode in bb3LevelNode.ChildNodes)
             {
                 var pElement = pNode as XmlElement;
                 if (pElement == null)

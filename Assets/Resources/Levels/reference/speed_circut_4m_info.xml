@@ -1,0 +1,17 @@
+<BlockBallEvolution_LevelInfo>
+    <LevelName>speed circut</LevelName>
+    <Creator>4Minds</Creator>
+    <TextureSet id="0" />
+    <Thumbnail></Thumbnail>
+    <SkyBox>bb_skybox_3</SkyBox>
+    <Screenshot></Screenshot>
+    <Difficulty>advanced</Difficulty>
+    <Music>speed_circut.ogg</Music>
+    <Medal time="90" />
+    <Medal time="105" />
+    <Medal time="180" />
+    <Medal time="300" />
+    <LevelCenter posx="-400.0000" posy="400.0000" posz="-360.0000" />
+    <LevelZoom zoom="3715.4812" />
+    <LevelOrientation orix="0.0000" oriy="0.0000" oriz="0.0000" oriw="-1.0000" />
+</BlockBallEvolution_LevelInfo>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CampaignDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <LevelSet Name="beginner" DisplayName="Beginner">
+    <Level FileName="ancient_key" DisplayName="ancient key" />
+    <Level FileName="easy_loop" DisplayName="easy loop" />
+    <Level FileName="first_roll" DisplayName="first roll" />
+    <Level FileName="wall_ride" DisplayName="wall ride" />
+  </LevelSet>
+  <LevelSet Name="easy" DisplayName="Easy">
+    <Level FileName="big_jump" DisplayName="big jump" />
+    <Level FileName="just_speed" DisplayName="just speed" />
+    <Level FileName="marble_run" DisplayName="marble run" />
+  </LevelSet>
+  <LevelSet Name="intermediate" DisplayName="Intermediate">
+    <Level FileName="blue_way" DisplayName="blue way" />
+    <Level FileName="the_bridge" DisplayName="the bridge" />
+  </LevelSet>
+  <LevelSet Name="advanced" DisplayName="Advanced">
+    <Level FileName="blockjump" DisplayName="blockjump" />
+    <Level FileName="crossroads" DisplayName="crossroads" />
+    <Level FileName="speed_circut" DisplayName="speed circut" />
+    <Level FileName="the_box" DisplayName="the box" />
+  </LevelSet>
+  <LevelSet Name="hard" DisplayName="Hard">
+    <Level FileName="a_maze_thing" DisplayName="a maze thing" />
+    <Level FileName="late_jumps" DisplayName="late jumps" />
+    <Level FileName="small_detour" DisplayName="small detour" />
+    <Level FileName="thin_grids" DisplayName="thin grids" />
+  </LevelSet>
+  <LevelSet Name="bonus" DisplayName="Bonus">
+    <Level FileName="bonus_level_1" DisplayName="bonus level 1" />
+    <Level FileName="bonus_level_2" DisplayName="bonus level 2" />
+    <Level FileName="bonus_level_3" DisplayName="bonus level 3" />
+  </LevelSet>
+</CampaignDefinition>

@@ -18,6 +18,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using AssemblyCSharp; // For Definitions, CampaignManager
+using AssemblyCSharp.LevelData; // For CampaignDefinition, CampaignLevelSet, CampaignLevel
 
 /// <summary>
 /// Manages the level selection panel within the main menu.
@@ -34,14 +36,14 @@ public class LevelSelectionManager : MonoBehaviour
     [Header("Settings")]
     public bool autoPopulateOnEnable = true; // Whether to automatically populate the level list when enabled
     
-    [Header("Settings")]
-    public string levelsFolder = "Levels"; // Folder inside Resources where levels are stored
-    
     private BlockMerger blockMerger;
-    private List<string> levelNames = new List<string>();
+    // private List<string> levelNames = new List<string>(); // No longer directly used in the same way
 
     void Awake()
     {
+        // Initialize CampaignManager first
+        CampaignManager.Initialize();
+
         // Find BlockMerger
         blockMerger = FindObjectOfType<BlockMerger>();
         
@@ -90,6 +92,11 @@ public class LevelSelectionManager : MonoBehaviour
     /// </summary>
     public void PopulateLevelList()
     {
+        if (!CampaignManager.IsInitialized)
+        {
+            Debug.LogWarning("CampaignManager not initialized yet. Attempting to initialize now.");
+            CampaignManager.Initialize();
+        }
         CreateLevelButtons();
     }
     
@@ -111,83 +118,95 @@ public class LevelSelectionManager : MonoBehaviour
             return;
         }
         
-        Debug.Log("Looking for level files in Resources/" + levelsFolder);
-
-        // Try loading all files from the Levels folder
-        TextAsset[] levelFiles = Resources.LoadAll<TextAsset>(levelsFolder);
-        Debug.Log($"Initial level files found: {levelFiles.Length}");
-        
-        // List all found files before filtering
-        foreach (var file in levelFiles) 
+        if (!CampaignManager.IsInitialized || CampaignManager.Campaign == null || CampaignManager.Campaign.LevelSets == null)
         {
-            Debug.Log($"Found file: {file.name}");
-        }
-        
-        // Filter to only include campaign levels
-        List<TextAsset> filteredLevelFiles = new List<TextAsset>();
-        foreach (var file in levelFiles)
-        {
-            if (file.name.EndsWith("_campain"))
-            {
-                filteredLevelFiles.Add(file);
-                Debug.Log($"Added campaign level: {file.name}");
-            }
-        }
-        
-        // Convert back to array
-        levelFiles = filteredLevelFiles.ToArray();
-        
-        // Log how many levels were found
-        Debug.Log($"Found {levelFiles.Length} level files in Resources/{levelsFolder}");
-        
-        // If no level files were found, display a message
-        if (levelFiles.Length == 0)
-        {
-            GameObject messageObj = new GameObject("NoLevelsMessage");
-            messageObj.transform.SetParent(levelButtonContainer, false);
-            TextMeshProUGUI messageText = messageObj.AddComponent<TextMeshProUGUI>();
-            messageText.text = $"No campaign levels found in Resources/{levelsFolder}\n\nPlease make sure you have .level files with names ending in _campain";
-            messageText.fontSize = 24;
-            messageText.alignment = TextAlignmentOptions.Center;
-            messageText.color = Color.yellow;
-            RectTransform rect = messageObj.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(400, 100);
+            Debug.LogError("Campaign data is not available. Cannot populate level list.");
+            ShowNoLevelsMessage("Campaign data could not be loaded.\nPlease check campaign_definition.xml and logs.");
             return;
         }
-        
-        // Clear level names list
-        levelNames.Clear();
-        
-        // Create a button for each level file
-        foreach (TextAsset levelFile in levelFiles)
+
+        int totalLevelsInCampaign = 0;
+        foreach (var levelSet in CampaignManager.Campaign.LevelSets)
         {
-            string levelName = Path.GetFileNameWithoutExtension(levelFile.name).Replace("_campain", "");
-            levelNames.Add(levelName);
-            
-            // Skip if level button prefab is not assigned
-            if (levelButtonPrefab == null)
+            totalLevelsInCampaign += levelSet.Levels.Count;
+        }
+
+        Debug.Log($"Populating level list from CampaignManager. Found {CampaignManager.Campaign.LevelSets.Count} level sets with a total of {totalLevelsInCampaign} levels.");
+
+        if (totalLevelsInCampaign == 0)
+        {
+            ShowNoLevelsMessage("No levels defined in campaign_definition.xml.");
+            return;
+        }
+
+        // Create buttons for each level in the campaign definition
+        foreach (CampaignLevelSet levelSet in CampaignManager.Campaign.LevelSets)
+        {
+            // Optional: Add a header for the level set here if desired
+            // e.g., CreateHeader(levelSet.DisplayName);
+
+            foreach (CampaignLevel campaignLevel in levelSet.Levels)
             {
-                Debug.LogError("Level button prefab not assigned!");
-                continue;
-            }
-            
-            // Create button
-            GameObject buttonObj = Instantiate(levelButtonPrefab, levelButtonContainer);
-            
-            // Set up the level button
-            LevelButtonUI levelButton = buttonObj.GetComponent<LevelButtonUI>();
-            if (levelButton != null)
-            {
-                levelButton.SetLevelName(levelName);
-                
-                // Set up button click action
+                if (levelButtonPrefab == null)
+                {
+                    Debug.LogError("Level button prefab not assigned!");
+                    continue;
+                }
+
+                GameObject buttonObj = Instantiate(levelButtonPrefab, levelButtonContainer);
+                LevelButtonUI levelButtonUI = buttonObj.GetComponent<LevelButtonUI>();
                 Button button = buttonObj.GetComponent<Button>();
+
+                if (levelButtonUI != null)
+                {
+                    levelButtonUI.SetLevelName(campaignLevel.DisplayName); // Use DisplayName for button text
+                }
+                else
+                {
+                    // Fallback: Try to set text on a TextMeshProUGUI component if LevelButtonUI is not found or doesn't handle it
+                    TextMeshProUGUI tmpText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
+                    if (tmpText != null)
+                    {
+                        tmpText.text = campaignLevel.DisplayName;
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Could not find LevelButtonUI or TextMeshProUGUI on level button prefab to set display name.");
+                    }
+                }
+
                 if (button != null)
                 {
+                    // Capture the FileName for the closure
+                    string fileNameToLoad = campaignLevel.FileName;
                     button.onClick.RemoveAllListeners();
-                    button.onClick.AddListener(() => LoadLevel(levelName));
+                    button.onClick.AddListener(() => LoadLevel(fileNameToLoad)); // Use FileName for loading
+                }
+                else
+                {
+                    Debug.LogError("Button component not found on level button prefab.");
                 }
             }
         }
     }
+
+    private void ShowNoLevelsMessage(string message)
+    {
+        // Clear existing buttons before showing message
+        foreach (Transform child in levelButtonContainer)
+        {
+            Destroy(child.gameObject);
+        }
+        GameObject messageObj = new GameObject("NoLevelsMessage");
+        messageObj.transform.SetParent(levelButtonContainer, false);
+        TextMeshProUGUI messageText = messageObj.AddComponent<TextMeshProUGUI>();
+        messageText.text = message;
+        messageText.fontSize = 24;
+        messageText.alignment = TextAlignmentOptions.Center;
+        messageText.color = Color.yellow;
+        RectTransform rect = messageObj.GetComponent<RectTransform>();
+        float parentWidth = ((RectTransform)levelButtonContainer).rect.width;
+        rect.sizeDelta = new Vector2(parentWidth > 0 ? parentWidth * 0.9f : 600, 150);
+    }
 }
+    
