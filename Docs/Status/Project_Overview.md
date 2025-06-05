@@ -114,7 +114,8 @@ The project progress has been reverted to a previous state. Previous attempts:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | **Core Gameplay** | ✅ Functional | Ball movement, physics, jumping all working |
-| **Level Loading** | ✅ Functional | Done in the BlockMerger.cs; no level selection so far |
+| **Level Loading** | ✅ Functional | XML-based level loading with StartObject positioning fixed |
+| **Level Selection** | ✅ Functional | UI-based level selection with campaign system |
 | **Camera System** | ✅ Functional | Rotation, zoom, and gravity alignment implemented |
 | **Gravity System** | ✅ Functional | 90° and 180° gravity rotation working |
 | **Collectibles** | ✅ Functional | Diamonds and keys implemented |
@@ -289,3 +290,36 @@ The UI screen transition system has several critical architectural flaws that pr
 
 2. **Integration Verification**
    - Verify audio integration (WinSound.wav, roll.wav)
+
+## 6. Recent Major Fixes (December 2024)
+
+### Critical StartObject Position Fix
+**Problem**: Player ball was spawning at incorrect positions in levels despite correct StartObject coordinates in level files.
+
+**Root Cause**: Execution order issue where `Player.Start()` captured the initial position before `Level.Build()` set the StartObject position. When `Player.ResetPosition()` was called (e.g., when hitting dead zones), it reset to the wrong saved position.
+
+**Solution**: Added reflection-based fix in `Level.cs` StartObject processing to update Player's internal saved position fields (`xLastCollectedScoreItemPosition`, `xOrientationAsLastCollectedScoreItem`) after setting StartObject position.
+
+**Impact**: All levels now properly position the player ball at the intended starting location.
+
+### Level Loading Architecture Completion
+- Fixed scene file references that still pointed to old `_campain` suffix filenames
+- Completed integration between UI level selection and level loading system
+- Added proper state transitions from level selection to loading screen
+- Resolved duplicate key errors in level loading by clearing collections on reload
+
+### UI System Stabilization
+- Confirmed and documented the single-Canvas architecture
+- Fixed level selection UI integration with campaign system
+- Established proper screen state management flow
+
+---
+
+## 7. Next Development Phase
+
+### Planned: Level Selection UI Enhancement
+The next development session will focus on improving the level selection interface:
+- Enhanced visual design for level buttons
+- Level preview thumbnails
+- Progress indicators and completion status
+- Improved navigation and user experience

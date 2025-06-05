@@ -34,6 +34,7 @@ public class Player : BallObject
     protected override void Awake()
     {
         base.Awake();
+        pPlayerPhysicObject = this.GetComponent<PhysicObjekt>();
         // Replace deprecated sleepVelocity with sleepThreshold
         this.GetComponent<Rigidbody>().sleepThreshold = 0.0f;
     }
@@ -73,19 +74,26 @@ public class Player : BallObject
 			var scoreItem = pBaseObject as ScoreItem;
 			iScore += scoreItem.Score;
 			
-			// Update score text using modern UI components
-			TextMeshProUGUI tmpText = pScoreText.GetComponent<TextMeshProUGUI>();
-			if (tmpText != null)
+			// Update score text using modern UI components - but only if pScoreText is assigned
+			if (pScoreText != null)
 			{
-				tmpText.text = "Score: " + iScore.ToString();
+				TextMeshProUGUI tmpText = pScoreText.GetComponent<TextMeshProUGUI>();
+				if (tmpText != null)
+				{
+					tmpText.text = "Score: " + iScore.ToString();
+				}
+				else
+				{
+					Text legacyText = pScoreText.GetComponent<Text>();
+					if (legacyText != null)
+					{
+						legacyText.text = "Score: " + iScore.ToString();
+					}
+				}
 			}
 			else
 			{
-				Text legacyText = pScoreText.GetComponent<Text>();
-				if (legacyText != null)
-				{
-					legacyText.text = "Score: " + iScore.ToString();
-				}
+				UnityEngine.Debug.LogWarning("pScoreText is not assigned - score UI will not update");
 			}
 			
 			SaveLastCollectedScoreItemPosition(scoreItem);
@@ -135,20 +143,30 @@ public class Player : BallObject
 	// -------------------------------------------------------------------------------------------
 	void SaveLastCollectedScoreItemPosition (ScoreItem xScoreItem)
 	{
-		this.xLastCollectedScoreItemPosition			= xScoreItem.transform.position;
-        this.xOrientationAsLastCollectedScoreItem		= xScoreItem.transform.localRotation; //this.transform.localRotation;
-        this.xLastCollectedScoreItemGravityDirection	= (xScoreItem.transform.rotation * Vector3.down).normalized; //this.GravityDirection;
-        this.xLastCollectedScoreItemForwardDirection	= (xScoreItem.transform.rotation * Vector3.forward).normalized; //this.ForwardDirection;
+		// Save the PLAYER's current position and orientation when collecting the diamond
+		// NOT the diamond's position - the player should respawn where they were, not where the diamond was
+		this.xLastCollectedScoreItemPosition			= this.transform.position;
+        this.xOrientationAsLastCollectedScoreItem		= this.transform.localRotation;
+        this.xLastCollectedScoreItemGravityDirection	= this.GravityDirection;
+        this.xLastCollectedScoreItemForwardDirection	= this.ForwardDirection;
+        
+        UnityEngine.Debug.Log($"Saved respawn position: pos={this.transform.position}, rot={this.transform.localRotation}");
 	}
 	
 	// -------------------------------------------------------------------------------------------
 	public void ResetPosition ()
 	{
+		UnityEngine.Debug.Log($"Resetting to saved position: pos={this.xLastCollectedScoreItemPosition}, rot={this.xOrientationAsLastCollectedScoreItem}");
+		
 		this.transform.position			= this.xLastCollectedScoreItemPosition;
 		this.transform.localRotation	= this.xOrientationAsLastCollectedScoreItem;
 		this.GetComponent<Rigidbody>().velocity			= Vector3.zero;
         this.SetGravityDirection(this.xLastCollectedScoreItemGravityDirection);
         this.SetForwardDirection(this.xLastCollectedScoreItemForwardDirection);
+        
+        // Also reset the camera to follow the player properly
+        // The camera should automatically follow the player's new position and orientation
+        UnityEngine.Debug.Log($"Reset complete. Player gravity: {this.GravityDirection}, forward: {this.ForwardDirection}");
     }
 
     // -------------------------------------------------------------------------------------------
@@ -168,6 +186,18 @@ public class Player : BallObject
 		pDeadZoneCollider.SetPositionInRelationToPlayer(this);
 	}
 
+    // -------------------------------------------------------------------------------------------
+    void Update()
+    {
+        // Fall height death system - reset if player falls too far below last safe position
+        float fallDistance = Vector3.Distance(this.transform.position, this.xLastCollectedScoreItemPosition);
+        if (fallDistance > 20.0f) // 20 units is a reasonable fall distance
+        {
+            UnityEngine.Debug.Log($"Player fell too far (distance: {fallDistance:F1}), resetting position");
+            ResetPosition();
+        }
+    }
+	
 	// -------------------------------------------------------------------------------------------
 	
 }

@@ -20,7 +20,8 @@ Canvas                          # Single UI Canvas for all UI
 │   ├── LevelSelectionPanel     # Panel for level selection
 │   │   ├── TitleText
 │   │   ├── BackButton
-│   │   └── ScrollView          # For level buttons
+│   │   ├── ScrollView          # For level buttons
+│   │   └── LevelSelectionManager # Component that populates level buttons
 │   └── SettingsPanel           # Panel for settings (future)
 │       └── [Settings UI elements]
 │

@@ -6,3 +6,10 @@ Blockball todos
 Menu:
 - rename StandardUIManager to something better: ScreenManager
 - LevelSelectionPanael has a LevelSelectionManager.cs, which does some Panel Management. Why? Remove!
+- UI for level selction
+- respwan at last collected diamond
+- dead zone collider --> death after 4 blocks?
+- remove debugging
+
+
+

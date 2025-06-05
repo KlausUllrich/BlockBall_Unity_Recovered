@@ -108,11 +108,21 @@ namespace AssemblyCSharp
         {
             GameObject.DestroyImmediate(GameObject.Find("LevelCubes"));
             GameObject.DestroyImmediate(GameObject.Find("BlockGroups"));
+            
+            // Clear all collections to prevent memory leaks and conflicts
+            PositionHash.Clear();
+            LevelObjectList.Clear();
+            GroupList.Clear();
         }
 
         // -------------------------------------------------------------------------------------------
         public void Build()
         {
+            // Clear previous level data to prevent conflicts when reloading
+            PositionHash.Clear();
+            LevelObjectList.Clear();
+            GroupList.Clear();
+            
             // Check if a level is loaded
             if (GameObject.Find("LevelCubes") != null)
                 throw new Exception("A level is already loaded. You must destroy it before you can load a new one.");
@@ -205,13 +215,58 @@ namespace AssemblyCSharp
 	                {
 	                    var pos = XmlUtils.GetXmlAttributeVector3(pElement, "pos", Vector3.zero);
 	                    var ori = XmlUtils.GetXmlAttributeQuaternion(pElement, "ori", Quaternion.identity);
+	                    Debug.Log($"StartObject: pos={pos}, ori={ori}");
 	                    var t = GameObject.Find("PlayerSphere");
-	                    t.transform.position = pos;
-	                    t.transform.rotation = ori;
+	                    if (t != null)
+	                    {
+	                        Debug.Log($"Found PlayerSphere, setting position to {pos}");
+	                        t.transform.position = pos;
+	                        t.transform.rotation = ori;
 
-                        var pPlayer = t.GetComponent<Player>();
-                        pPlayer.SetGravityDirection(-t.transform.up);
-                        pPlayer.SetForwardDirection(ori * -Vector3.forward);
+	                        var pPlayer = t.GetComponent<Player>();
+	                        if (pPlayer != null)
+	                        {
+	                            pPlayer.SetGravityDirection(-t.transform.up);
+	                            pPlayer.SetForwardDirection(ori * -Vector3.forward);
+	                            
+	                            // CRITICAL FIX: Update the saved position so ResetPosition() works correctly
+	                            // BUT ONLY if no score items have been collected yet (preserve diamond respawn mechanic)
+	                            // The Player.Start() method captures the initial position before StartObject is processed
+	                            var lastPosField = typeof(Player).GetField("xLastCollectedScoreItemPosition", 
+	                                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+	                            var lastRotField = typeof(Player).GetField("xOrientationAsLastCollectedScoreItem", 
+	                                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+	                            
+	                            if (lastPosField != null && lastRotField != null)
+	                            {
+	                                // iScore is a property, not a field - check it directly
+	                                int currentScore = pPlayer.iScore;
+	                                // Only update saved position if no diamonds collected yet (score == 0)
+	                                if (currentScore == 0)
+	                                {
+	                                    lastPosField.SetValue(pPlayer, pos);
+	                                    lastRotField.SetValue(pPlayer, t.transform.localRotation);
+	                                    Debug.Log($"Updated Player initial saved position to {pos} (score=0, no diamonds collected)");
+	                                }
+	                                else
+	                                {
+	                                    Debug.Log($"Preserving diamond respawn position (score={currentScore}, diamonds collected)");
+	                                }
+	                            }
+	                            else
+	                            {
+	                                Debug.LogWarning("Could not find Player position fields via reflection");
+	                            }
+	                        }
+	                        else
+	                        {
+	                            Debug.LogWarning("PlayerSphere found but no Player component!");
+	                        }
+	                    }
+	                    else
+	                    {
+	                        Debug.LogError("PlayerSphere GameObject not found!");
+	                    }
 						break;
 	                }
 				case "Block":
@@ -457,4 +512,3 @@ namespace AssemblyCSharp
         // -------------------------------------------------------------------------------------------
     }
 }
-
