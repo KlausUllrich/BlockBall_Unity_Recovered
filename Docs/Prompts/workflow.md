@@ -1,6 +1,6 @@
 # Workflow Rules
 
-- Always ensure when analysing a file you read the full file
+- Always ensure when analysing a file you read the full file. Read files in chunks of 200 lines, but ensure you capture the full file.
 - If reading an .md files you MUST read the full file. This is not optional.
 - Always create a plan for integration before coding
 - Always try to find and fix the root cause of a problem/issue

@@ -1,121 +1,70 @@
+---
+title: "Phase 2: Ball Physics Overview (Updated Modular Structure)"
+phase: "2"
+note: "This document has been updated to reflect the new modular file structure after splitting oversized documents."
+---
+
 # Phase 2: Ball Physics Overview
 
-## Mission Statement
-Implement comprehensive ball physics including rolling mechanics, jumping, state management, and camera-relative input processing. This phase builds upon Phase 1's foundation to create the complete ball control system.
+**Note for LLM**: This overview has been updated after successful document splitting to optimize for context length and zero-error processing. The large documents have been split into modular parts as follows:
 
-## Phase Objectives
-1. **Ball State Machine**: Implement grounded/airborne/sliding/transitioning states
-2. **Rolling Physics**: Realistic ball rolling with friction and angular velocity
-3. **Jump Mechanics**: Precise 6-Bixel (0.75 Unity unit) jumps with buffering
-4. **Input Processing**: Camera-relative movement with diagonal normalization
-5. **Speed Control**: Three-tier speed limiting system
+## Core Implementation Tasks (Now Modular)
 
-## Context & Dependencies
-**Requires Phase 1**: This phase depends on the core architecture from Phase 1:
-- `BlockBallPhysicsManager` for object registration
-- `IPhysicsObject` interface implementation
-- `VelocityVerletIntegrator` for physics calculations
-- Performance profiling and debugging systems
+### Ball Physics Component
+- **LLM_02B1_BallPhysics_Component_Overview.md** (Part 1): Component overview, objectives, and implementation steps
+- **LLM_02B2_BallPhysics_Component_Implementation.md** (Part 2): Full physics implementation with detailed code
 
-## Key Technical Specifications
+### Gravity Zone Detector Component  
+- **LLM_02F1_GravityZoneDetector_Overview.md** (Part 1): Component overview and technical requirements
+- **LLM_02F2_GravityZoneDetector_Implementation.md** (Part 2): Complete method implementations and validation
 
-### Ball Parameters
-- **Radius**: 0.5 Unity units (4 Bixels)
-- **Mass**: 1.0 kg (standard)
-- **Jump Height**: 0.75 Unity units (6 Bixels) exactly
-- **Max Input Speed**: 6 units/second
-- **Max Physics Speed**: 7 units/second  
-- **Max Total Speed**: 8 units/second
+## Automated Test Suites (Now Modular)
 
-### State Machine
-- **Grounded**: Rolling on surface, friction applied
-- **Airborne**: In flight, air drag applied
-- **Sliding**: On steep slopes (>45°), reduced friction
-- **Transitioning**: During gravity changes, special handling
+### Rolling Physics Tests
+- **LLM_03D1_RollingPhysics_Tests_Setup.md** (Part 1): Test setup and framework structure
+- **LLM_03D2_RollingPhysics_Tests_Implementation.md** (Part 2): Complete test method implementations
 
-### Input Mechanics
-- **Jump Buffer**: 0.1 second window before/after valid jump
-- **Coyote Time**: 0.15 second grace period after leaving ground
-- **Camera Relative**: Movement direction based on camera orientation
-- **Diagonal Normalization**: Consistent speed in all directions
+### Gravity Zone System Tests
+- **LLM_03F1_GravityZoneSystem_Tests_Core.md** (Part 1): Core test setup and basic functionality
+- **LLM_03F2_GravityZoneSystem_Tests_Implementation.md** (Part 2): Advanced tests and helper methods
 
-## Phase 2 Deliverables
+### Single Source of Truth Tests
+- **LLM_03G1_SingleSourceOfTruth_Tests_Core.md** (Part 1): Core compliance testing framework
+- **LLM_03G2_SingleSourceOfTruth_Tests_Implementation.md** (Part 2): Advanced validation and scoring
 
-### Core Components
-1. **BallPhysics.cs**: Main ball physics component implementing IPhysicsObject
-2. **BallStateMachine.cs**: State management system
-3. **BallInputProcessor.cs**: Camera-relative input handling
-4. **BallController.cs**: High-level ball control coordination
-5. **GroundDetector.cs**: Ground contact detection system
+## Other Implementation Tasks (Unchanged)
+- **LLM_02A_BallStateMachine_Task.md**: Implementation steps and code for state management
+- **LLM_02C_BallInputProcessor_Task.md**: Camera-relative input handling instructions
+- **LLM_02D_BallController_Task.md**: High-level coordination of ball control
+- **LLM_02E_GroundDetector_Task.md**: Ground contact and slope detection logic
 
-### Integration Points
-- **PhysicObject.cs**: Will be refactored to use new BallPhysics
-- **Player.cs**: Integration with new ball control system
-- **Camera System**: Must work with new input processing
-- **Block Collision**: Ground detection with level geometry
+## Other Test Cases (Unchanged)
+- **LLM_03A_Phase2_Automated_Tests_JumpHeight.md**: Test runner script and jump height validation
+- **LLM_03B_Phase2_Automated_Tests_StateMachine.md**: State transition testing
+- **LLM_03C_Phase2_Automated_Tests_GroundDetection.md**: Ground and slope detection tests
+- **LLM_03E_Phase2_Automated_Tests_InputProcessing.md**: Camera-relative input and normalization tests
+- **LLM_03H_Phase2_Manual_Test_Cases.md**: Manual testing procedures for subjective validation
 
-## Success Criteria
-- [ ] Ball rolls smoothly without jitter or jumping
-- [ ] Jump height exactly 0.75 units (6 Bixels) consistently
-- [ ] Input feels responsive and camera-relative
-- [ ] State transitions are smooth and predictable
-- [ ] All speed limits enforced correctly
-- [ ] Ground detection works on slopes up to 45°
-- [ ] Performance remains <2ms with ball physics active
+## Completion Validation (Unchanged)
+- **LLM_04A_Phase2_Completion_Checker_Overview.md**: Detailed checklist for all components and mechanics
+- **LLM_04B_Phase2_Automated_Validation_Script.md**: Editor script for automated validation
+- **LLM_04C_Phase2_Integration_and_Handoff_Guide.md**: Final integration, documentation, and next steps for Phase 3
 
-## Risk Mitigation
-- **Gradual Integration**: Implement alongside existing system with feature flags
-- **Comprehensive Testing**: Unit tests for each component
-- **Performance Monitoring**: Continuous profiling during development
-- **Rollback Capability**: Can revert to Phase 1 if issues arise
+## Directive for LLM
+**New Workflow**: When implementing modular components:
+1. **Start with Part 1 documents** for overview and setup
+2. **Continue to Part 2 documents** for complete implementations  
+3. **Both parts must be implemented together** for full functionality
+4. **Cross-reference between parts** using "Next Steps" sections
 
-## Technical Challenges
+**Purpose of Modular Structure**: Documents are now split to maintain under 200 lines each while preserving all content, ensuring optimal LLM processing with complete context and zero information loss.
 
-### Challenge 1: Precise Jump Height
-**Issue**: Achieving exactly 6 Bixels jump height consistently
-**Solution**: Calculate exact initial velocity based on gravity and target height
-**Formula**: `v = sqrt(2 * g * h)` where h = 0.75 units
+**Implementation Priority**: 
+1. BallPhysics Component (LLM_02B1 + LLM_02B2)
+2. GravityZoneDetector Component (LLM_02F1 + LLM_02F2) 
+3. Run test suites to validate implementation (LLM_03D1+D2, LLM_03F1+F2, LLM_03G1+G2)
 
-### Challenge 2: Rolling Constraint
-**Issue**: Ball must roll realistically without sliding
-**Solution**: Implement angular velocity constraint: `ω = v / r`
-**Validation**: Visual wheel rotation must match movement speed
+## Directive for LLM
+Start with `LLM_01A_Phase2_Mission_and_Objectives.md` and follow the sequence for overview. For implementation, begin with `LLM_02A_BallStateMachine_Task.md`. Use YAML headers for context, dependencies, and validation steps. Log progress in `/Status/Project_Overview.md` and issues in `/Status/Issues_and_Required_Cleanup.md`.
 
-### Challenge 3: State Transitions
-**Issue**: Smooth transitions between grounded/airborne states
-**Solution**: Hysteresis in ground detection, gradual friction changes
-**Implementation**: Different thresholds for entering/leaving states
-
-### Challenge 4: Camera-Relative Input
-**Issue**: Movement direction must account for camera orientation and gravity
-**Solution**: Project camera vectors onto gravity-perpendicular plane
-**Edge Cases**: Handle camera parallel to gravity direction
-
-## Integration Strategy
-
-### Phase 1 Dependencies
-- Uses `IPhysicsObject` interface from Phase 1
-- Registers with `BlockBallPhysicsManager`
-- Leverages `VelocityVerletIntegrator` for physics
-- Utilizes performance profiling system
-
-### Existing System Integration
-- **PhysicObject.cs**: Gradually replace with BallPhysics
-- **Player.cs**: Adapt input handling to new system
-- **Camera**: Ensure proper integration with input processing
-- **Level System**: Maintain compatibility with existing level loading
-
-## Documentation Requirements
-- **Complete API Documentation**: XML comments for all public members
-- **Usage Examples**: How to configure and use each component
-- **Integration Guide**: Step-by-step integration with existing systems
-- **Performance Notes**: Memory usage and optimization tips
-- **Troubleshooting Guide**: Common issues and solutions
-
-## Next Phase Prerequisites
-Phase 3 (Collision System) will require:
-- Stable ball physics implementation
-- Reliable ground detection system
-- Consistent state management
-- Performance within targets
-- Complete integration with existing Player component
+**Purpose of Tailoring**: These documents are optimized for LLM usage with modular structure, explicit instructions, error handling, and machine-readable metadata to ensure complete understanding and zero-error execution.
