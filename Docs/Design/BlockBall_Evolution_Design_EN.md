@@ -17,6 +17,7 @@
 - The ball can jump (constant jump height; horizontal distance depends on speed)
 - Gravity can be rotated in 90° or 180° steps using gravity switches. The camera aligns accordingly.
 - Gravity affects platform orientation, controls, and camera alignment.
+- Gravity affects the player's ball, but not the environment or other player's ball.
 
 ### Camera
 

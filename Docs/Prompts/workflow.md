@@ -1,6 +1,7 @@
 # Workflow Rules
 
 - Always ensure when analysing a file you read the full file
+- If reading an .md files you MUST read the full file. This is not optional.
 - Always create a plan for integration before coding
 - Always try to find and fix the root cause of a problem/issue
 - Always perform a self-check before marking a task as complete (completeness, consistency, accuracy, clarity, all dependencies validated and relating files updated).
