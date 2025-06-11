@@ -42,6 +42,8 @@ public class PhysicObjekt : GrafikObjekt
 
     private bool wasGroundedLastFrame = false;
 
+    private PhysicsObjectWrapper wrapper;
+
     //-----------------------------------------------------------------------------------------------------------------
     public virtual void SetGravityDirection(Vector3 vDirection)
     {
@@ -142,6 +144,80 @@ public class PhysicObjekt : GrafikObjekt
     {
         if (WorldStateManager.GamePaused)
             return;
+
+        if (wrapper == null)
+        {
+            wrapper = GetComponent<PhysicsObjectWrapper>();
+            if (wrapper == null)
+            {
+                wrapper = gameObject.AddComponent<PhysicsObjectWrapper>();
+                Debug.LogWarning($"PhysicObject.FixedUpdate: Added missing PhysicsObjectWrapper to {this.name}");
+            }
+        }
+
+        if (physicsSettings == null)
+        {
+            physicsSettings = Resources.Load<BlockBall.Settings.PhysicsSettings>("PhysicsSettings");
+            if (physicsSettings == null)
+            {
+                Debug.LogWarning($"PhysicObject.FixedUpdate: PhysicsSettings asset not found for {this.name}. Using default settings.");
+            }
+        }
+
+        // Update physics mode from settings if available
+        BlockBall.Physics.PhysicsMode currentMode = physicsSettings != null ? physicsSettings.physicsMode : BlockBall.Physics.PhysicsMode.UnityPhysics;
+        
+        // Log current state for debugging
+        if (physicsSettings != null && physicsSettings.enableMigrationLogging)
+        {
+            Debug.Log($"PhysicObject.FixedUpdate: Object={this.name}, PhysicsMode={currentMode}, Rigidbody.IsKinematic={rb.isKinematic}, Rigidbody.UseGravity={rb.useGravity}, Velocity={rb.velocity.ToString("F3")}, GroundContact={HasGroundContact()}, GroundContactCount={axGroundContactGameObjects.Count}");
+        }
+
+        // Apply custom physics logic based on mode
+        if (currentMode == BlockBall.Physics.PhysicsMode.CustomPhysics)
+        {
+            // Apply custom gravity forces if in CustomPhysics mode
+            if (!rb.isKinematic && !rb.useGravity)
+            {
+                float gravityValue = -9.81f;
+                float gravityMultiplier = 2.0f; // Stronger gravity for custom physics
+                Vector3 gravityForce = Vector3.up * gravityValue * gravityMultiplier * rb.mass;
+                rb.AddForce(gravityForce, ForceMode.Force);
+                if (physicsSettings != null && physicsSettings.enableMigrationLogging)
+                {
+                    Debug.Log($"PhysicObject.FixedUpdate: Applied custom gravity force={gravityForce.ToString("F3")} to {this.name} with multiplier={gravityMultiplier}");
+                }
+            }
+        }
+        else if (currentMode == BlockBall.Physics.PhysicsMode.Hybrid)
+        {
+            // In Hybrid mode, let Unity handle gravity but custom forces might be added
+            if (physicsSettings != null && physicsSettings.enableMigrationLogging)
+            {
+                Debug.Log($"PhysicObject.FixedUpdate: Skipped applying custom gravity forces due to PhysicsMode={currentMode}");
+            }
+        }
+        else
+        {
+            // UnityPhysics mode - let Unity handle everything
+            if (physicsSettings != null && physicsSettings.enableMigrationLogging)
+            {
+                Debug.Log($"PhysicObject.FixedUpdate: Skipped applying custom forces due to PhysicsMode={currentMode}");
+            }
+        }
+
+        // Call the wrapper to handle physics integration
+        wrapper.IntegrateVelocityVerlet(Time.fixedDeltaTime);
+
+        // Removed redundant speed limit enforcement to avoid duplication
+        // Speed limiting should be handled in PhysicsObjectWrapper.cs for consistency
+        if (physicsSettings != null && physicsSettings.enableMigrationLogging)
+        {
+            float currentLimit = physicsSettings != null ? 
+                (currentMode == PhysicsMode.CustomPhysics ? physicsSettings.physicsSpeedLimit : 
+                 currentMode == PhysicsMode.Hybrid ? physicsSettings.hybridSpeedLimit : physicsSettings.totalSpeedLimit) : 3.0f;
+            Debug.Log($"PhysicObject.FixedUpdate: Speed limit enforcement delegated to PhysicsObjectWrapper for {this.name} in {currentMode} mode. Limit: {currentLimit}");
+        }
 
         // Detailed logging for debugging physics interference (Task 0B.6)
         bool currentGroundContact = HasGroundContact();

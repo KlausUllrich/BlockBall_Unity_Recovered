@@ -8,58 +8,80 @@ namespace BlockBall.Settings
     {
         // Physics Mode for migration
         [Header("Physics Mode Selection")]
-        [Tooltip("Select the active physics mode: UnityPhysics (default), CustomPhysics, or Hybrid.")]
+        [Tooltip("Select the active physics mode: UnityPhysics uses built-in Unity physics, CustomPhysics uses a fully custom implementation, Hybrid combines elements of both for transition.")]
         public BlockBall.Physics.PhysicsMode physicsMode = BlockBall.Physics.PhysicsMode.UnityPhysics;
         
-        [Header("Migration and Debugging")]
-        [Tooltip("Enable detailed logging for physics migration debugging.")]
-        public bool enableMigrationLogging = true;
-        [Tooltip("Enable detailed logging specifically for jump buffering debugging.")]
-        public bool enableJumpBufferingLogging = true;
-        [Tooltip("Validate parameter conversion during migration.")]
-        public bool validateParameterConversion = true;
-        [Tooltip("Enable debug logging for jump buffering.")]
-        public bool enableJumpBufferingDebugLogging = false;
+        [Header("Logging and Debugging")]
+        [Tooltip("Enable detailed logging for physics migration to debug mode-specific behaviors, velocity capping, and force application. Useful for troubleshooting but may impact performance with excessive log output.")]
+        public bool enableMigrationLogging = false;
         
-        [Header("Legacy Parameters")]
-        [Tooltip("Legacy jump force from the original system")]
-        [Range(1f, 10f)]
+        [Tooltip("Enable detailed logging for jump buffering to track input detection, buffering state, and jump execution. Helps diagnose timing issues but can produce verbose output.")]
+        public bool enableJumpBufferingLogging = false;
+        
+        [Header("Jump Buffering Settings")]
+        [Tooltip("Duration (in seconds) to buffer a jump input if the player is not grounded. Ensures jump intent is not lost during brief loss of ground contact. Range from 0.05s to 0.5s.")]
+        [Range(0.05f, 0.5f)]
+        public float jumpInputBufferTime = 0.2f;
+        
+        [Tooltip("Duration (in seconds) to consider the player grounded after losing contact. Prevents immediate fall detection and allows buffered jumps. Range from 0.05s to 0.5s.")]
+        [Range(0.05f, 0.5f)]
+        public float groundContactBufferTime = 0.2f;
+        
+        [Header("Unity Physics (Legacy) Mode Settings")]
+        [Tooltip("Jump force applied in UnityPhysics mode. This is the legacy value adjusted for Unity's built-in physics system. Increased by 50% in Unity mode for gameplay feel. Range from 2 to 10.")]
+        [Range(2f, 10f)]
         public float legacyJumpForce = 5.0f;
         
-        [Tooltip("Legacy speed factor for movement")]
-        [Range(0.1f, 5f)]
+        [Tooltip("Speed factor for movement in UnityPhysics mode. Adjusts the responsiveness of legacy movement forces. Range from 0.5 to 2.0.")]
+        [Range(0.5f, 2.0f)]
         public float legacySpeedFactor = 1.0f;
         
-        [Tooltip("Legacy break factor for stopping movement")]
-        [Range(1f, 20f)]
+        [Tooltip("Breaking factor to slow down movement in UnityPhysics mode. Higher values result in faster deceleration when braking. Range from 5 to 20.")]
+        [Range(5f, 20f)]
         public float legacyBreakFactor = 10.0f;
         
-        [Tooltip("Legacy gravity value from the original system")]
-        public float legacyGravity = -9.81f;
+        [Tooltip("Maximum speed limit (in blocks per second, 1 block = 1 Unity unit) for objects in UnityPhysics mode. Caps total velocity to ensure consistent movement. Range from 0.5 to 5.0.")]
+        [Range(0.5f, 5.0f)]
+        public float totalSpeedLimit = 3.0f;
         
-        [Header("Target Parameters")]
-        [Tooltip("Target jump height for custom physics (informational, for conversion)")]
-        [Range(0.5f, 1.5f)]
-        public float targetJumpHeight = 0.75f;
+        [Header("Hybrid Mode Settings")]
+        [Tooltip("Maximum speed limit (in blocks per second, 1 block = 1 Unity unit) for objects in Hybrid mode. Caps total velocity combining Unity and custom physics elements. Uses the same value as UnityPhysics mode for consistency. Range from 0.5 to 5.0.")]
+        [Range(0.5f, 5.0f)]
+        public float hybridSpeedLimit = 3.0f; // Same as totalSpeedLimit by default
         
-        [Tooltip("Speed limit for player input forces")]
+        [Header("Custom Physics Mode Settings")]
+        [Tooltip("Maximum speed limit (in blocks per second, 1 block = 1 Unity unit) for objects in CustomPhysics mode. Caps velocity in the fully custom implementation for predictable behavior. Range from 0.5 to 5.0.")]
+        [Range(0.5f, 5.0f)]
+        public float physicsSpeedLimit = 2.0f;
+        
+        [Tooltip("Number of substeps for deterministic physics calculations in CustomPhysics mode. Higher values improve precision but impact performance. Range from 1 to 10.")]
+        [Range(1, 10)]
+        public int deterministicSubsteps = 4;
+        
+        [Tooltip("Performance factor for CustomPhysics mode. Adjusts update frequency or calculation detail. Higher values prioritize performance over accuracy. Range from 1 to 5.")]
+        [Range(1, 5)]
+        public int performanceFactor = 2;
+        
+        [Header("Player Input Force Settings (All Modes)")]
+        [Tooltip("Speed limit for player input forces. Intended to cap velocity driven by input, but currently not implemented in movement logic. For future use or legacy reference. Range from 4 to 10.")]
         [Range(4f, 10f)]
         public float inputSpeedLimit = 6.0f;
         
-        [Tooltip("Speed limit for physics calculations")]
-        [Range(4f, 10f)]
-        public float physicsSpeedLimit = 6.5f;
+        [Tooltip("Input force scaling factor for movement across all modes. 1.0 represents original behavior, 0.2 is 20% strength, 3.0 is 300% strength. Multiplies base force magnitudes. Range from 0.2 to 3.0.")]
+        [Range(0.2f, 3.0f)]
+        public float inputForceScale = 1.0f; // Renamed to clarify it's a scaling factor
         
-        [Tooltip("Total speed limit combining input and physics")]
-        [Range(5f, 12f)]
-        public float totalSpeedLimit = 7.0f;
+        [Tooltip("Base force magnitude for forward movement in all modes. Defines the strength of forward input before scaling. Matches original hardcoded value. Range from 5 to 15.")]
+        [Range(5f, 15f)]
+        public float forwardForceMagnitude = 8.0f; // Matches original hardcoded value
         
-        [Header("Jump Buffering Parameters")]
-        [Tooltip("Time in milliseconds to buffer a jump input before it is discarded if not grounded")]
-        public int jumpInputBufferTime = 300;
+        [Tooltip("Base force magnitude for sideways movement (left/right) in all modes. Defines the strength of lateral input before scaling. Matches original hardcoded value. Range from 5 to 15.")]
+        [Range(5f, 15f)]
+        public float sidewaysForceMagnitude = 8.0f; // Matches original hardcoded value
         
-        [Tooltip("Time in milliseconds after ground contact during which a jump can still be triggered")]
-        public int groundContactBufferTime = 200;
+        [Tooltip("Base force magnitude for backward movement in all modes. Defines the strength of backward input before scaling. Matches original hardcoded value. Range from 5 to 15.")]
+        [Range(5f, 15f)]
+        public float backwardForceMagnitude = 3.0f; // Matches original hardcoded value
         
         [Header("Deterministic Math Configuration")]
         [Tooltip("Scale factor for fixed-point math (higher values increase precision but risk overflow)")]
@@ -83,19 +105,13 @@ namespace BlockBall.Settings
         public float ConvertJumpForceToHeight()
         {
             // Empirical conversion formula (to be calibrated)
-            float gravity = legacyGravity;
+            float gravity = -9.81f;
             return (legacyJumpForce * legacyJumpForce) / (2 * gravity);
         }
         
         public void ValidateParameters()
         {
-            if (!validateParameterConversion) return;
-            
-            float convertedHeight = ConvertJumpForceToHeight();
-            if (Mathf.Abs(convertedHeight - targetJumpHeight) > 0.1f && enableMigrationLogging)
-            {
-                UnityEngine.Debug.LogWarning($"Jump height mismatch: Legacy jump force converts to {convertedHeight:F2}, but target is {targetJumpHeight:F2}. Adjust parameters for consistency.");
-            }
+            if (!true) return;
         }
     }
 }

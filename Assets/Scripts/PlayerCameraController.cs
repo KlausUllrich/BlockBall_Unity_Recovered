@@ -340,50 +340,46 @@ public class PlayerCameraController : MonoBehaviour
         if (this.ObjectControlled == null)
             return;
 
-        if (this.CanOnlyConrolledIfGrounded && this.ObjectControlled.HasGroundContact() == false)
-            return;
-
-        // Check physics mode before applying movement forces
+        // Check physics mode to decide whether to apply forces
         if (physicsSettings != null && physicsSettings.physicsMode == PhysicsMode.CustomPhysics)
         {
-            Debug.Log($"PlayerCameraController.Move: Skipped applying movement forces due to PhysicsMode=CustomPhysics");
-            return;
+            Debug.Log($"PlayerCameraController.Move: Skipped applying movement forces due to PhysicsMode=CustomPhysics. Handled in PhysicsObjectWrapper.");
+            return; // Skip applying forces in CustomPhysics mode as it's handled in PhysicsObjectWrapper
         }
 
-        // Log decision to apply movement forces
-        Debug.Log($"PlayerCameraController.Move: Applying movement forces for {this.name} in PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Default(UnityPhysics)").ToString()}");
-        
-        var vForward = this.ObjectControlled.ForwardDirection;
-        var vRight = this.ObjectControlled.RightDirection;
-        var pRigidBody = this.ObjectControlled.GetComponent<Rigidbody>();
-		
-		switch(eType)
-		{
-		case MOVEMENT_TYPE.BREAK:
-			if (pRigidBody.velocity.magnitude < 0.1f)
-				pRigidBody.velocity = Vector3.zero;
-			else
-				pRigidBody.AddForce(pRigidBody.velocity.normalized * -this.BreakFactor);
-			break;
-		case MOVEMENT_TYPE.FORWARD:
-			pRigidBody.AddTorque(vRight * this.SpeedFactor);
-			pRigidBody.AddForce(vForward*8.0f * this.SpeedFactor);
-			break;
-		case MOVEMENT_TYPE.LEFT:
-			pRigidBody.AddTorque(vForward * this.SpeedFactor);
-			pRigidBody.AddForce(-vRight*8.0f * this.SpeedFactor);
-			break;
-		case MOVEMENT_TYPE.RIGHT:
-			pRigidBody.AddTorque(-vForward * this.SpeedFactor);
-			pRigidBody.AddForce(vRight*8.0f * this.SpeedFactor);
-			break;
-		case MOVEMENT_TYPE.BACKWARD:
-			pRigidBody.AddTorque(-vRight * this.SpeedFactor);
-			pRigidBody.AddForce(-vForward*3.0f * this.SpeedFactor);
-			break;
-		}
-        Debug.Log($"PlayerCameraController.Move: Applied Force={pRigidBody.velocity.ToString("F3")} and Torque={pRigidBody.angularVelocity.ToString("F3")} to {this.name}, New Velocity={pRigidBody.velocity.ToString("F3")}");
-        UnityEngine.Debug.Log("Applied movement forces for " + eType.ToString() + " in " + (physicsSettings != null ? physicsSettings.physicsMode.ToString() : "default") + " mode.");
+        // Use input force magnitudes and scale from PhysicsSettings if available, otherwise use default values
+        float forwardForce = physicsSettings != null ? physicsSettings.forwardForceMagnitude : 8.0f;
+        float sidewaysForce = physicsSettings != null ? physicsSettings.sidewaysForceMagnitude : 8.0f;
+        float backwardForce = physicsSettings != null ? physicsSettings.backwardForceMagnitude : 3.0f;
+        float inputScale = physicsSettings != null ? physicsSettings.inputForceScale : 1.0f;
+        float breakFactor = physicsSettings != null ? physicsSettings.legacyBreakFactor : 10.0f;
+
+        Vector3 vForce = Vector3.zero;
+
+        switch (eType)
+        {
+            case MOVEMENT_TYPE.FORWARD:
+                vForce = this.ObjectControlled.ForwardDirection * forwardForce * inputScale;
+                break;
+            case MOVEMENT_TYPE.BACKWARD:
+                vForce = this.ObjectControlled.ForwardDirection * -backwardForce * inputScale;
+                break;
+            case MOVEMENT_TYPE.RIGHT:
+                vForce = this.ObjectControlled.RightDirection * sidewaysForce * inputScale;
+                break;
+            case MOVEMENT_TYPE.LEFT:
+                vForce = this.ObjectControlled.RightDirection * -sidewaysForce * inputScale;
+                break;
+            case MOVEMENT_TYPE.BREAK:
+                vForce = this.ObjectControlled.GetComponent<Rigidbody>().velocity * -breakFactor;
+                break;
+        }
+
+        if (vForce != Vector3.zero)
+        {
+            this.ObjectControlled.GetComponent<Rigidbody>().AddForce(vForce, ForceMode.Force);
+            Debug.Log($"PlayerCameraController.Move: Applied {eType.ToString()} Force={vForce.ToString("F3")}, New Velocity={this.ObjectControlled.GetComponent<Rigidbody>().velocity.ToString("F3")}, PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Unknown")}");
+        }
     }
 
     // -------------------------------------------------------------------------------------------

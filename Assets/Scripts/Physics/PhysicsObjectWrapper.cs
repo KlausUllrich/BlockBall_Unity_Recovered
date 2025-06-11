@@ -147,145 +147,107 @@ public class PhysicsObjectWrapper : MonoBehaviour, IPhysicsObject
         catch { /* Track state ourselves if method doesn't exist */ currentState = state; } 
     }
     
-    public void IntegrateVelocityVerlet(float deltaTime)
+    public void IntegrateVelocityVerlet(float dt)
     {
-        // Use deterministic delta time for physics integration
-        float dt = DeterministicMath.DeltaTime;
-        
-        // Enhanced logging to confirm method is called (Task 0B.6)
-        Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Object={name}, DeltaTime={dt.ToString("F4")}, PhysicsMode={physicsMode.ToString()}");
-        
-        // Log the current physics mode for debugging
-        Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Current Physics Mode for {name}: {physicsMode.ToString()}");
-        
-        // Log PhysicsSettings values to confirm they are accessed correctly
-        if (physicsSettings != null)
+        if (rigidBody == null) rigidBody = GetComponent<Rigidbody>();
+        if (physicsSettings == null)
         {
-            Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: PhysicsSettings Values for {name} - Legacy Gravity: {physicsSettings.legacyGravity}, Physics Mode: {physicsSettings.physicsMode}");
+            // Load settings at runtime if not already loaded
+            physicsSettings = Resources.Load<BlockBall.Settings.PhysicsSettings>("PhysicsSettings");
+            if (physicsSettings != null)
+            {
+                physicsMode = physicsSettings.physicsMode;
+                if (physicsSettings.enableMigrationLogging)
+                    Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Loaded PhysicsSettings at runtime. Mode: {physicsMode}");
+            }
+            else
+            {
+                if (physicsSettings.enableMigrationLogging)
+                    Debug.LogWarning($"PhysicsObjectWrapper.IntegrateVelocityVerlet: PhysicsSettings asset not found. Defaulting to UnityPhysics mode.");
+                physicsMode = PhysicsMode.UnityPhysics;
+            }
         }
-        else
-        {
-            Debug.LogWarning($"PhysicsObjectWrapper.IntegrateVelocityVerlet: PhysicsSettings is null for {name}, using fallback or default values.");
-        }
-        
-        // Choose physics approach based on mode from PhysicsSettings
+
+        // Apply different physics logic based on mode
         switch (physicsMode)
         {
-            case PhysicsMode.UnityPhysics:
-                // Delegate to Unity physics or Player script
-                if (rigidBody != null && !rigidBody.useGravity)
-                {
-                    rigidBody.useGravity = true; // Allow Unity physics to apply gravity
-                    Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: UnityPhysics mode for {name}: Set Rigidbody.useGravity to true for Unity physics. Rigidbody State - IsKinematic: {rigidBody.isKinematic}, Constraints: {rigidBody.constraints}");
-                }
-                try { var method = playerScript.GetType().GetMethod("UpdatePhysics"); if (method != null) { method.Invoke(playerScript, new object[] { dt }); Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Invoked UpdatePhysics method from Player script in UnityPhysics mode for {name}."); } } 
-                catch { Debug.LogWarning($"PhysicsObjectWrapper.IntegrateVelocityVerlet: UnityPhysics mode for {name}: No UpdatePhysics method found, letting Unity handle physics."); /* No action, let Unity handle physics */ }
-                break;
-            
             case PhysicsMode.CustomPhysics:
-                // Custom physics integration using DeterministicMath
-                if (rigidBody != null)
+                // Custom physics mode: Cap velocity at physicsSpeedLimit
+                float customSpeedLimit = physicsSettings != null ? physicsSettings.physicsSpeedLimit : 2.0f;
+                Vector3 customVelocity = rigidBody.velocity;
+                // Implement basic movement forces in CustomPhysics mode
+                if (this.gameObject.name.Contains("Player") || this.gameObject.name.Contains("Sphere")) // Assuming player object
                 {
-                    // Log Rigidbody state for debugging
-                    Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: CustomPhysics mode for {name}: Rigidbody - IsKinematic: {rigidBody.isKinematic}, UseGravity: {rigidBody.useGravity}, Constraints: {rigidBody.constraints}, Pre-update velocity: {rigidBody.velocity.ToString("F3")}");
-                    
-                    // Disable Unity gravity to apply custom gravity
-                    if (rigidBody.useGravity)
+                    float forwardForce = physicsSettings != null ? physicsSettings.forwardForceMagnitude : 8.0f;
+                    float sidewaysForce = physicsSettings != null ? physicsSettings.sidewaysForceMagnitude : 8.0f;
+                    float backwardForce = physicsSettings != null ? physicsSettings.backwardForceMagnitude : 3.0f;
+                    float inputScale = physicsSettings != null ? physicsSettings.inputForceScale : 1.0f;
+                    Vector3 movementForce = Vector3.zero;
+                    if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
+                        movementForce += Vector3.forward * forwardForce * inputScale;
+                    if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
+                        movementForce += Vector3.back * backwardForce * inputScale;
+                    if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
+                        movementForce += Vector3.right * sidewaysForce * inputScale;
+                    if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
+                        movementForce += Vector3.left * sidewaysForce * inputScale;
+                    if (movementForce != Vector3.zero)
                     {
-                        rigidBody.useGravity = false;
-                        Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: CustomPhysics mode for {name}: Set Rigidbody.useGravity to false to apply custom physics.");
+                        rigidBody.AddForce(movementForce, ForceMode.Force);
+                        if (physicsSettings != null && physicsSettings.enableMigrationLogging)
+                            Debug.Log($"CustomPhysics mode for {this.name}: Applied movement force {movementForce.magnitude}");
                     }
-                    
-                    // Use gravity value from PhysicsSettings if available, otherwise default to Unity's gravity
-                    float gravityValue = physicsSettings != null ? physicsSettings.legacyGravity : -9.81f;
-                    // Adjust gravity multiplier based on mode for behavioral distinction (Task 0B.4)
-                    float gravityMultiplier = 2.0f; // Increased from 1.5x to 2.0x for more noticeable falling speed
-                    float effectiveGravity = gravityValue * gravityMultiplier;
-                    Vector3 gravity = Vector3.up * effectiveGravity;
-                    Vector3 newVelocity = DeterministicMath.Add(rigidBody.velocity, DeterministicMath.Multiply(gravity, dt));
-                    
-                    // Apply custom speed control for Phase 0C
-                    float speedLimit = physicsSettings != null ? physicsSettings.physicsSpeedLimit : 6.5f;
-                    if (newVelocity.magnitude > speedLimit)
-                    {
-                        newVelocity = newVelocity.normalized * speedLimit;
-                        Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: CustomPhysics mode for {name}: Applied speed limit of {speedLimit}. Velocity capped from {rigidBody.velocity.magnitude.ToString("F3")} to {newVelocity.magnitude.ToString("F3")}");
-                    }
-                    
-                    rigidBody.velocity = DeterministicMath.RoundVector(newVelocity);
-                    
-                    // Log updated velocity for debugging
-                    Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: CustomPhysics mode for {name}: Applied custom gravity with 2.0x multiplier. Post-update velocity: {rigidBody.velocity.ToString("F3")}");
-                }
-                else
-                {
-                    Debug.LogWarning($"PhysicsObjectWrapper.IntegrateVelocityVerlet: CustomPhysics mode for {name}: No Rigidbody found.");
-                }
-                break;
-            
-            case PhysicsMode.Hybrid:
-                // Hybrid mode: Attempt Player script update, fallback to custom with Unity as base
-                bool playerScriptUpdated = false;
-                try { 
-                    var method = playerScript.GetType().GetMethod("UpdatePhysics"); 
-                    if (method != null) { 
-                        method.Invoke(playerScript, new object[] { dt }); 
-                        Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Hybrid mode for {name}: Invoked UpdatePhysics method from Player script for input forces."); 
-                        playerScriptUpdated = true;
-                    } 
-                } 
-                catch { 
-                    Debug.LogWarning($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Hybrid mode for {name}: No UpdatePhysics method found, skipping Player script update.");
                 }
                 
-                if (rigidBody != null)
+                if (customVelocity.magnitude > customSpeedLimit)
                 {
-                    // Log Rigidbody state for debugging
-                    Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Hybrid mode for {name}: Rigidbody - IsKinematic: {rigidBody.isKinematic}, UseGravity: {rigidBody.useGravity}, Constraints: {rigidBody.constraints}, Pre-update velocity: {rigidBody.velocity.ToString("F3")}");
-                    
-                    // Disable Unity gravity to apply custom gravity
-                    if (rigidBody.useGravity)
-                    {
-                        rigidBody.useGravity = false;
-                        Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Hybrid mode for {name}: Set Rigidbody.useGravity to false to apply custom physics.");
-                    }
-                    
-                    // Use gravity value from PhysicsSettings if available, otherwise default to Unity's gravity
-                    float hybridGravityValue = physicsSettings != null ? physicsSettings.legacyGravity : -9.81f;
-                    // Adjust gravity multiplier based on mode for behavioral distinction (Task 0B.4)
-                    float hybridGravityMultiplier = 1.0f; 
-                    float hybridEffectiveGravity = hybridGravityValue * hybridGravityMultiplier;
-                    Vector3 hybridGravity = Vector3.up * hybridEffectiveGravity;
-                    Vector3 hybridNewVelocity = DeterministicMath.Add(rigidBody.velocity, DeterministicMath.Multiply(hybridGravity, dt));
-                    
-                    // Apply custom speed control for Phase 0C, considering input from old system
-                    float hybridSpeedLimit = physicsSettings != null ? physicsSettings.totalSpeedLimit : 7.0f;
-                    if (hybridNewVelocity.magnitude > hybridSpeedLimit)
-                    {
-                        hybridNewVelocity = hybridNewVelocity.normalized * hybridSpeedLimit;
-                        Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Hybrid mode for {name}: Applied total speed limit of {hybridSpeedLimit}. Velocity capped from {rigidBody.velocity.magnitude.ToString("F3")} to {hybridNewVelocity.magnitude.ToString("F3")}");
-                    }
-                    
-                    rigidBody.velocity = DeterministicMath.RoundVector(hybridNewVelocity);
-                    
-                    // Log updated velocity for debugging
-                    Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Hybrid mode for {name}: Applied custom gravity with 0.5x multiplier to balance with old system. Post-update velocity: {rigidBody.velocity.ToString("F3")}");
+                    customVelocity = customVelocity.normalized * customSpeedLimit;
+                    rigidBody.velocity = customVelocity;
+                    if (physicsSettings != null && physicsSettings.enableMigrationLogging)
+                        Debug.Log($"CustomPhysics mode velocity capped for {this.name} from {customVelocity.magnitude} to {customSpeedLimit}. Current Velocity: {rigidBody.velocity.magnitude}");
                 }
-                else
+                else if (physicsSettings != null && physicsSettings.enableMigrationLogging)
                 {
-                    Debug.LogWarning($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Hybrid mode for {name}: No Rigidbody found.");
+                    Debug.Log($"CustomPhysics mode velocity not capped for {this.name}. Current Velocity: {customVelocity.magnitude}, Limit: {customSpeedLimit}");
                 }
                 break;
-            
-            default:
-                Debug.LogWarning($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Unknown PhysicsMode for {name}, defaulting to UnityPhysics");
-                if (rigidBody != null && !rigidBody.useGravity)
+
+            case PhysicsMode.Hybrid:
+                // Hybrid mode: Apply custom gravity but use Unity physics for other forces
+                float hybridLimit = physicsSettings != null ? physicsSettings.hybridSpeedLimit : 3.0f;
+                // Always apply custom gravity in Hybrid mode
+                Vector3 gravityForce = Physics.gravity * rigidBody.mass;
+                rigidBody.AddForce(gravityForce, ForceMode.Force);
+                
+                Vector3 hybridVelocity = rigidBody.velocity;
+                if (hybridVelocity.magnitude > hybridLimit)
                 {
-                    rigidBody.useGravity = true; // Allow Unity physics to apply gravity
-                    Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Default case for {name}: Set Rigidbody.useGravity to true for Unity physics. Rigidbody State - IsKinematic: {rigidBody.isKinematic}, Constraints: {rigidBody.constraints}");
+                    hybridVelocity = hybridVelocity.normalized * hybridLimit;
+                    rigidBody.velocity = hybridVelocity;
+                    if (physicsSettings != null && physicsSettings.enableMigrationLogging)
+                        Debug.Log($"Hybrid mode velocity capped for {this.name} from {hybridVelocity.magnitude} to {hybridLimit}. Current Velocity: {rigidBody.velocity.magnitude}");
                 }
-                try { var method = playerScript.GetType().GetMethod("UpdatePhysics"); if (method != null) { method.Invoke(playerScript, new object[] { dt }); Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Default case for {name}: Invoked UpdatePhysics method from Player script."); } } 
-                catch { Debug.LogWarning($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Default case for {name}: No UpdatePhysics method found, letting Unity handle physics."); /* No action, let Unity handle physics */ }
+                else if (physicsSettings != null && physicsSettings.enableMigrationLogging)
+                {
+                    Debug.Log($"Hybrid mode velocity not capped for {this.name}. Current Velocity: {hybridVelocity.magnitude}, Limit: {hybridLimit}");
+                }
+                break;
+
+            case PhysicsMode.UnityPhysics:
+                // Unity physics mode: Cap velocity at totalSpeedLimit
+                float unitySpeedLimit = physicsSettings != null ? physicsSettings.totalSpeedLimit : 3.0f;
+                Vector3 unityVelocity = rigidBody.velocity;
+                if (unityVelocity.magnitude > unitySpeedLimit)
+                {
+                    unityVelocity = unityVelocity.normalized * unitySpeedLimit;
+                    rigidBody.velocity = unityVelocity;
+                    if (physicsSettings != null && physicsSettings.enableMigrationLogging)
+                        Debug.Log($"UnityPhysics mode velocity capped for {this.name} from {unityVelocity.magnitude} to {unitySpeedLimit}. Current Velocity: {rigidBody.velocity.magnitude}");
+                }
+                else if (physicsSettings != null && physicsSettings.enableMigrationLogging)
+                {
+                    Debug.Log($"UnityPhysics mode velocity not capped for {this.name}. Current Velocity: {unityVelocity.magnitude}, Limit: {unitySpeedLimit}");
+                }
                 break;
         }
     }
