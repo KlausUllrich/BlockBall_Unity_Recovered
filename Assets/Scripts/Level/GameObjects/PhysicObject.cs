@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using BlockBall.Settings;
+using BlockBall.Physics;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PhysicObjekt : GrafikObjekt 
@@ -31,6 +33,12 @@ public class PhysicObjekt : GrafikObjekt
 
     // TEST: Add option to use Unity's built-in gravity instead of custom gravity system
     public bool UseUnityGravity = false;  // Set to true in Inspector to test Unity gravity
+    
+    // Reference to PhysicsSettings for mode checking
+    private PhysicsSettings physicsSettings;
+    private PhysicsMode physicsMode;
+
+    protected Rigidbody rb;
 
     //-----------------------------------------------------------------------------------------------------------------
     public virtual void SetGravityDirection(Vector3 vDirection)
@@ -110,12 +118,61 @@ public class PhysicObjekt : GrafikObjekt
     }
 
     //-----------------------------------------------------------------------------------------------------------------
+    protected virtual void Awake()
+    {
+        rb = GetComponent<Rigidbody>();
+        // Runtime loading of PhysicsSettings (Task 0B.1)
+        physicsSettings = Resources.Load<PhysicsSettings>("PhysicsSettings");
+        if (physicsSettings == null)
+        {
+            Debug.LogWarning("PhysicsSettings asset not found. Defaulting to original behavior. Ensure PhysicsSettings.asset is in Resources folder.");
+            physicsMode = PhysicsMode.UnityPhysics; 
+        }
+        else
+        {
+            Debug.Log("PhysicsSettings loaded successfully in PhysicObject from Resources. Mode: " + physicsSettings.physicsMode);
+            physicsMode = physicsSettings.physicsMode;
+        }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
     protected virtual void FixedUpdate()
     {
+        // Detailed logging for debugging physics interference (Task 0B.6)
+        Debug.Log($"PhysicObject.FixedUpdate: Object={name}, PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Unknown")}, Rigidbody.IsKinematic={GetComponent<Rigidbody>().isKinematic}, Rigidbody.UseGravity={GetComponent<Rigidbody>().useGravity}, Velocity={GetComponent<Rigidbody>().velocity.ToString("F3")}");
+        
+        // Check physics mode to decide whether to apply old system forces
+        if (physicsSettings != null && (physicsSettings.physicsMode == PhysicsMode.CustomPhysics || physicsSettings.physicsMode == PhysicsMode.Hybrid))
+        {
+            Debug.Log($"PhysicObject.FixedUpdate: Skipped applying custom gravity for {name} due to PhysicsMode={physicsSettings.physicsMode.ToString()}");
+            return; // Skip applying old system forces in Custom or Hybrid mode
+        }
+        
+        // Log decision to apply custom gravity
+        Debug.Log($"PhysicObject.FixedUpdate: Applying custom gravity for {name} in PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Default(UnityPhysics)").ToString()}");
+        
+        // Apply custom gravity forces as in the original system
+        Rigidbody rb = GetComponent<Rigidbody>();
+        rb.AddForce(Gravity);
+        
+        // Log force application result for debugging
+        Debug.Log($"PhysicObject.FixedUpdate: Applied Gravity={Gravity.ToString("F3")} to {name}, New Velocity={rb.velocity.ToString("F3")}");
+        
+        // Update ground contact and orientation vectors (if needed)
         if (!UseUnityGravity)
         {
-            // Original custom gravity system
-            this.GetComponent<Rigidbody>().AddForce(Gravity);
+            // Check physics mode before applying custom gravity
+            if (physicsSettings != null && (physicsSettings.physicsMode == PhysicsMode.CustomPhysics || physicsSettings.physicsMode == PhysicsMode.Hybrid))
+            {
+                // Skip custom gravity force application in CustomPhysics or Hybrid mode
+                UnityEngine.Debug.Log("Skipping custom gravity force in " + physicsSettings.physicsMode + " mode.");
+            }
+            else
+            {
+                // Original custom gravity system
+                this.GetComponent<Rigidbody>().AddForce(Gravity);
+                UnityEngine.Debug.Log("Applying custom gravity force in " + (physicsSettings != null ? physicsSettings.physicsMode.ToString() : "default") + " mode.");
+            }
         }
         // If UseUnityGravity is true, let Unity handle gravity automatically
         // Unity's gravity will be applied based on Physics.gravity and Rigidbody.useGravity

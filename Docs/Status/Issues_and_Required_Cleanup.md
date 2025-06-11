@@ -36,6 +36,18 @@ last_updated: "2025-06-11"
 
 ## Resolved Issues
 - **IPhysicsObject Wrapper Integration**: Successfully integrated with PlayerSphere on [date]. No observable behavior changes, confirming compatibility with existing Unity physics system. No issues or cleanup required at this stage.
+- **DeterministicMath Implementation**: Implemented on [date] for consistent physics calculations using float32 precision. Integrated into PhysicsObjectWrapper on [date] with RoundVector method added for vector operations; tested and validated on [date] with no observable behavior changes, confirming continued compatibility with existing system.
+- **PhysicsProfiler Implementation**: Implemented on [date] to monitor physics performance during migration. Setup script and prefab created for scene integration; instructions provided for manual setup in the main scene via Unity Editor; pending attachment to a GameObject and testing to establish baseline performance metrics.
+- **Duplicate PhysicsMode Definition**: Resolved error CS0101 on [date] by removing duplicate PhysicsMode enum from PhysicsSettings.cs, ensuring definition exists only in PhysicsMode.cs.
+
+## Phase 0B: Hybrid Implementation - In Progress
+- **PhysicsMode Enum**: Implemented on [date] to define physics system modes (UnityPhysics, CustomPhysics, Hybrid). Added to PhysicsSettings for mode selection; integrated into PhysicsObjectWrapper on [date] for toggling behavior between Unity and custom physics systems, pending testing to validate mode switching.
+- **Duplicate Definition Fix**: Resolved error CS0101 on [date] by removing duplicate PhysicsMode enum from PhysicsSettings.cs, ensuring definition exists only in PhysicsMode.cs.
+- **Namespace Organization**: Added 'BlockBall.Physics' and 'BlockBall.Settings' namespaces to relevant scripts on [date] for consistent code organization and to prevent future namespace conflicts.
+- **PhysicsSettings Asset**: Created PhysicsSettings.asset on [date] in Assets/Settings/ with default parameters and physicsMode set to UnityPhysics for compatibility.
+- **PhysicsSettings Path Update**: Updated resource path in PhysicsObjectWrapper.cs on [date] to correctly load PhysicsSettings asset from 'PhysicsSettings' path.
+- **Error Handling**: Added try-catch block on [date] for robust loading of PhysicsSettings asset in PhysicsObjectWrapper.cs to handle potential loading errors; updated error message to provide actionable guidance for creating the asset if missing.
+- **Type Qualification**: Fully qualified PhysicsSettings type as BlockBall.Settings.PhysicsSettings on [date] in PhysicsObjectWrapper.cs to resolve potential namespace reference issues.
 
 ## Risk Mitigation Actions
 - **Jump Feel Changes**: Implement extensive playtesting and gradual transition options via `PhysicsMode` to prevent altering player muscle memory.

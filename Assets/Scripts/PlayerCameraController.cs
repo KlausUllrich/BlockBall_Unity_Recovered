@@ -2,6 +2,8 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using BlockBall.Settings;
+using BlockBall.Physics;
 
 [RequireComponent(typeof(Camera))]
 public class PlayerCameraController : MonoBehaviour 
@@ -33,8 +35,11 @@ public class PlayerCameraController : MonoBehaviour
 	private TimeSpan xJumpTime = TimeSpan.Zero;
 	private HashSet<Block> pSeeThroughList = new HashSet<Block>();
 	private HashSet<Block> pNewSeeThroughList = new HashSet<Block>();
+    
+    // Reference to PhysicsSettings for mode checking
+    private PhysicsSettings physicsSettings;
 
-	// -------------------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------------------
 	public enum MOVEMENT_TYPE
 	{
 		BREAK = 0,
@@ -46,7 +51,17 @@ public class PlayerCameraController : MonoBehaviour
         
     // -------------------------------------------------------------------------------------------
     void Awake() 
-	{
+    {
+        // Load PhysicsSettings at runtime using Resources
+        physicsSettings = Resources.Load<PhysicsSettings>("PhysicsSettings");
+        if (physicsSettings == null)
+        {
+            Debug.LogWarning("PhysicsSettings asset not found in PlayerCameraController. Defaulting to original behavior. Ensure PhysicsSettings.asset is in Resources folder.");
+        }
+        else
+        {
+            Debug.Log("PhysicsSettings loaded successfully in PlayerCameraController from Resources. Mode: " + physicsSettings.physicsMode);
+        }
     }
 
     // -------------------------------------------------------------------------------------------
@@ -260,31 +275,47 @@ public class PlayerCameraController : MonoBehaviour
 
     // -------------------------------------------------------------------------------------------
     public void Jump()
-	{
-        if (this.ObjectControlled == null)
-            return;
-
-        // Calc the similarty of the current velecity and the intended jump vector
-        var vUp = -this.ObjectControlled.GravityDirection;
-        var vJump = vUp * this.JumpForce;
-        float fScalar = Vector3.Dot(vJump, this.ObjectControlled.GetComponent<Rigidbody>().velocity);
-        float fSimilarty = fScalar / vJump.magnitude;
-        // add the difference between intended and actual 
-        var vDifference2Intended = vUp * (vJump.magnitude - fSimilarty);
-        this.ObjectControlled.GetComponent<Rigidbody>().velocity += vDifference2Intended;
-        // null jump time
-        this.xJumpTime = TimeSpan.Zero;
+    {
+        // Detailed logging for debugging physics interference (Task 0B.6)
+        Debug.Log($"PlayerCameraController.Jump: Object={this.name}, PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Unknown")}, Rigidbody.IsKinematic={this.ObjectControlled.GetComponent<Rigidbody>().isKinematic}, Rigidbody.UseGravity={this.ObjectControlled.GetComponent<Rigidbody>().useGravity}, Velocity={this.ObjectControlled.GetComponent<Rigidbody>().velocity.ToString("F3")}");
+        
+        // Use jump force from PhysicsSettings if available, otherwise default to original value
+        float jumpForce = physicsSettings != null ? physicsSettings.legacyJumpForce * (physicsSettings.physicsMode == PhysicsMode.UnityPhysics ? 1.5f : 1.0f) : 5.0f; // Increase jump force by 50% in UnityPhysics mode
+        
+        // Check physics mode to decide whether to apply jump force
+        if (physicsSettings != null && physicsSettings.physicsMode == PhysicsMode.CustomPhysics)
+        {
+            Debug.Log($"PlayerCameraController.Jump: Skipped applying jump force due to PhysicsMode=CustomPhysics");
+            return; // Skip applying forces in CustomPhysics mode
+        }
+        
+        Vector3 jumpVector = -this.ObjectControlled.GravityDirection * jumpForce;
+        this.ObjectControlled.GetComponent<Rigidbody>().velocity = jumpVector;
+        Debug.Log($"PlayerCameraController.Jump: Applied Jump Force={jumpForce}, New Velocity={this.ObjectControlled.GetComponent<Rigidbody>().velocity.ToString("F3")}");
     }
 	
 	// -------------------------------------------------------------------------------------------
 	public void Move(MOVEMENT_TYPE eType)
 	{
+        // Detailed logging for debugging physics interference (Task 0B.6)
+        Debug.Log($"PlayerCameraController.Move: Object={this.name}, PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Unknown")}, Rigidbody.IsKinematic={this.ObjectControlled.GetComponent<Rigidbody>().isKinematic}, Rigidbody.UseGravity={this.ObjectControlled.GetComponent<Rigidbody>().useGravity}, Velocity={this.ObjectControlled.GetComponent<Rigidbody>().velocity.ToString("F3")}");
+        
         if (this.ObjectControlled == null)
             return;
 
         if (this.CanOnlyConrolledIfGrounded && this.ObjectControlled.HasGroundContact() == false)
             return;
 
+        // Check physics mode before applying movement forces
+        if (physicsSettings != null && physicsSettings.physicsMode == PhysicsMode.CustomPhysics)
+        {
+            Debug.Log($"PlayerCameraController.Move: Skipped applying movement forces due to PhysicsMode=CustomPhysics");
+            return;
+        }
+
+        // Log decision to apply movement forces
+        Debug.Log($"PlayerCameraController.Move: Applying movement forces for {this.name} in PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Default(UnityPhysics)").ToString()}");
+        
         var vForward = this.ObjectControlled.ForwardDirection;
         var vRight = this.ObjectControlled.RightDirection;
         var pRigidBody = this.ObjectControlled.GetComponent<Rigidbody>();
@@ -314,7 +345,9 @@ public class PlayerCameraController : MonoBehaviour
 			pRigidBody.AddForce(-vForward*3.0f * this.SpeedFactor);
 			break;
 		}
-	}
+        Debug.Log($"PlayerCameraController.Move: Applied Force={pRigidBody.velocity.ToString("F3")} and Torque={pRigidBody.angularVelocity.ToString("F3")} to {this.name}, New Velocity={pRigidBody.velocity.ToString("F3")}");
+        UnityEngine.Debug.Log("Applied movement forces for " + eType.ToString() + " in " + (physicsSettings != null ? physicsSettings.physicsMode.ToString() : "default") + " mode.");
+    }
 
     // -------------------------------------------------------------------------------------------
 }
