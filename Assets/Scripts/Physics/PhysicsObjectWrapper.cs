@@ -203,6 +203,15 @@ public class PhysicsObjectWrapper : MonoBehaviour, IPhysicsObject
                     float effectiveGravity = gravityValue * gravityMultiplier;
                     Vector3 gravity = Vector3.up * effectiveGravity;
                     Vector3 newVelocity = DeterministicMath.Add(rigidBody.velocity, DeterministicMath.Multiply(gravity, dt));
+                    
+                    // Apply custom speed control for Phase 0C
+                    float speedLimit = physicsSettings != null ? physicsSettings.physicsSpeedLimit : 6.5f;
+                    if (newVelocity.magnitude > speedLimit)
+                    {
+                        newVelocity = newVelocity.normalized * speedLimit;
+                        Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: CustomPhysics mode for {name}: Applied speed limit of {speedLimit}. Velocity capped from {rigidBody.velocity.magnitude.ToString("F3")} to {newVelocity.magnitude.ToString("F3")}");
+                    }
+                    
                     rigidBody.velocity = DeterministicMath.RoundVector(newVelocity);
                     
                     // Log updated velocity for debugging
@@ -244,10 +253,19 @@ public class PhysicsObjectWrapper : MonoBehaviour, IPhysicsObject
                     // Use gravity value from PhysicsSettings if available, otherwise default to Unity's gravity
                     float hybridGravityValue = physicsSettings != null ? physicsSettings.legacyGravity : -9.81f;
                     // Adjust gravity multiplier based on mode for behavioral distinction (Task 0B.4)
-                    float hybridGravityMultiplier = 0.5f; // Decreased from 0.7x to 0.5x for a lighter feel
+                    float hybridGravityMultiplier = 1.0f; 
                     float hybridEffectiveGravity = hybridGravityValue * hybridGravityMultiplier;
                     Vector3 hybridGravity = Vector3.up * hybridEffectiveGravity;
                     Vector3 hybridNewVelocity = DeterministicMath.Add(rigidBody.velocity, DeterministicMath.Multiply(hybridGravity, dt));
+                    
+                    // Apply custom speed control for Phase 0C, considering input from old system
+                    float hybridSpeedLimit = physicsSettings != null ? physicsSettings.totalSpeedLimit : 7.0f;
+                    if (hybridNewVelocity.magnitude > hybridSpeedLimit)
+                    {
+                        hybridNewVelocity = hybridNewVelocity.normalized * hybridSpeedLimit;
+                        Debug.Log($"PhysicsObjectWrapper.IntegrateVelocityVerlet: Hybrid mode for {name}: Applied total speed limit of {hybridSpeedLimit}. Velocity capped from {rigidBody.velocity.magnitude.ToString("F3")} to {hybridNewVelocity.magnitude.ToString("F3")}");
+                    }
+                    
                     rigidBody.velocity = DeterministicMath.RoundVector(hybridNewVelocity);
                     
                     // Log updated velocity for debugging

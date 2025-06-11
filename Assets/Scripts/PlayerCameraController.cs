@@ -31,8 +31,12 @@ public class PlayerCameraController : MonoBehaviour
 
 	public float Scale = 0.41f;
 
-    // -------------------------------------------------------------------------------------------
-	private TimeSpan xJumpTime = TimeSpan.Zero;
+    // -----------------------------------------------------------------------------------------
+    // Jump buffering variables
+    private TimeSpan xJumpTime = TimeSpan.Zero;
+    private TimeSpan xGroundContactTime = TimeSpan.Zero;
+    private bool wasGroundedLastFrame = false;
+    // -----------------------------------------------------------------------------------------
 	private HashSet<Block> pSeeThroughList = new HashSet<Block>();
 	private HashSet<Block> pNewSeeThroughList = new HashSet<Block>();
     
@@ -73,25 +77,29 @@ public class PlayerCameraController : MonoBehaviour
     // -------------------------------------------------------------------------------------------
     void Update()
     {
-		if (WorldStateManager.GamePaused)
-			return;
-		
-		xJumpTime -= TimeSpan.FromSeconds(Time.fixedDeltaTime);
-
+        if (WorldStateManager.GamePaused)
+            return;
+        
+        if (this.ObjectControlled != null && Input.GetKeyDown(KeyCode.Space))
+        {
+            bool isGrounded = this.ObjectControlled.HasGroundContact();
+            if (isGrounded || xGroundContactTime > TimeSpan.Zero)
+            {
+                this.Jump();
+                xGroundContactTime = TimeSpan.Zero;
+                if (physicsSettings != null && physicsSettings.enableJumpBufferingLogging)
+                    Debug.Log($"PlayerCameraController.Update: Jump executed immediately for {this.name}. Grounded={isGrounded}, GroundContactTime={xGroundContactTime.TotalMilliseconds}ms");
+            }
+            else
+            {
+                xJumpTime = TimeSpan.FromMilliseconds(physicsSettings != null ? physicsSettings.jumpInputBufferTime : 300);
+                if (physicsSettings != null && physicsSettings.enableJumpBufferingLogging)
+                    Debug.Log($"PlayerCameraController.Update: Jump input queued for {this.name}. Buffer duration: {xJumpTime.TotalMilliseconds}ms");
+            }
+        }
+        
         if (this.ObjectControlled != null)
         {
-			if (Input.GetKeyDown(KeyCode.Space))
-            {
-                if (this.ObjectControlled.HasGroundContact())
-                {
-                    this.Jump();
-                }
-                else
-                {
-                    xJumpTime = new TimeSpan(0, 0, 0, 0, MilisecondsBeforeGroundContractIsValidAsJump);
-                }
-            }
-
             if (this.transform.hasChanged)
             {
                 pNewSeeThroughList.Clear();
@@ -119,6 +127,100 @@ public class PlayerCameraController : MonoBehaviour
                 pSeeThroughList = pNewSeeThroughList;
                 pNewSeeThroughList = pTempList;
             }
+        }
+    }
+
+    // -------------------------------------------------------------------------------------------
+    void FixedUpdate () 
+    {
+        if (WorldStateManager.GamePaused)
+            return;
+
+        if (this.ObjectControlled == null)
+            return;
+        
+        // Jump buffering logic in FixedUpdate for physics synchronization
+        xJumpTime -= TimeSpan.FromSeconds(Time.fixedDeltaTime);
+        xGroundContactTime -= TimeSpan.FromSeconds(Time.fixedDeltaTime);
+
+        bool isGrounded = this.ObjectControlled.HasGroundContact();
+        
+        // Update ground contact buffer time when transitioning to grounded state
+        if (isGrounded && !wasGroundedLastFrame)
+        {
+            xGroundContactTime = TimeSpan.FromMilliseconds(physicsSettings != null ? physicsSettings.groundContactBufferTime : 200);
+            if (physicsSettings != null && physicsSettings.enableJumpBufferingLogging)
+                Debug.Log($"PlayerCameraController.FixedUpdate: Ground contact detected for {this.name}. Buffer set to {xGroundContactTime.TotalMilliseconds}ms");
+        }
+        wasGroundedLastFrame = isGrounded;
+        
+        // Check if a jump is queued and the object is now grounded or within ground contact buffer
+        if (xJumpTime > TimeSpan.Zero && (isGrounded || xGroundContactTime > TimeSpan.Zero))
+        {
+            this.Jump();
+            xJumpTime = TimeSpan.Zero; // Reset jump buffer after executing jump
+            xGroundContactTime = TimeSpan.Zero; // Reset ground contact buffer after jump
+            if (physicsSettings != null && physicsSettings.enableJumpBufferingLogging)
+                Debug.Log($"PlayerCameraController.FixedUpdate: Executed queued jump for {this.name}. Grounded={isGrounded}, GroundContactTime={xGroundContactTime.TotalMilliseconds}ms");
+        }
+        
+        if (physicsSettings != null && physicsSettings.enableJumpBufferingLogging)
+            Debug.Log($"PlayerCameraController.FixedUpdate: State for {this.name} - Grounded={isGrounded}, JumpTime={xJumpTime.TotalMilliseconds}ms, GroundContactTime={xGroundContactTime.TotalMilliseconds}ms");
+        
+        // Movement logic remains unchanged
+        if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
+        {
+            Move (MOVEMENT_TYPE.FORWARD);
+        }
+        if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
+        {
+            Move (MOVEMENT_TYPE.BACKWARD);
+        }
+        if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
+        {
+            Move (MOVEMENT_TYPE.RIGHT);
+        }
+        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
+        {
+            Move(MOVEMENT_TYPE.LEFT);
+        }
+        if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.Keypad0))
+        {
+            Move(MOVEMENT_TYPE.BREAK);
+        }
+
+        // rotation
+        var fXAxis = Input.GetAxis("Mouse X");  // rotates around y-axis
+        var fYAxis = Input.GetAxis("Mouse Y");  // rotates around x-axis
+        if (fXAxis != 0 || fYAxis != 0)
+        {
+            if (fXAxis != 0)
+            {
+                var fXEuler = fXAxis * XSpeed * 0.02f;
+                var vNewForward = Quaternion.AngleAxis(fXEuler, -this.ObjectControlled.GravityDirection) * this.ObjectControlled.ForwardDirection;
+                this.ObjectControlled.SetForwardDirection(vNewForward);
+            }
+
+            if (fYAxis != 0)
+            {
+                var vEuler = this.OffsetRotation.eulerAngles;
+                vEuler.x -= fYAxis * YSpeed * 0.02f;
+                vEuler.x = ClampAngle(vEuler.x, this.YMinLimit, this.YMaxLimit);
+                //vEuler.y = 0;
+                //vEuler.z = 0;
+
+                this.OffsetRotation = Quaternion.Euler(vEuler);
+            }
+        }
+
+        // zoom
+        if (Input.GetAxis("Mouse ScrollWheel") < 0) // back
+        {
+            this.Distance = Mathf.Clamp(this.Distance += 1, this.ZoomMinLimit, this.ZoomMaxLimit);
+        }
+        if (Input.GetAxis("Mouse ScrollWheel") > 0) // forward
+        {
+            this.Distance = Mathf.Clamp(this.Distance -= 1, this.ZoomMinLimit, this.ZoomMaxLimit);
         }
     }
 
@@ -197,71 +299,6 @@ public class PlayerCameraController : MonoBehaviour
 	}
 
     // -------------------------------------------------------------------------------------------
-    void FixedUpdate () 
-	{
-		if (WorldStateManager.GamePaused)
-			return;
-
-        if (this.ObjectControlled == null)
-            return;
-		
-		if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
-		{
-			Move (MOVEMENT_TYPE.FORWARD);
-		}
-		if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
-		{
-			Move (MOVEMENT_TYPE.BACKWARD);
-		}
-		if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
-		{
-			Move (MOVEMENT_TYPE.RIGHT);
-		}
-		if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
-		{
-			Move(MOVEMENT_TYPE.LEFT);
-		}
-		if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.Keypad0))
-		{
-			Move(MOVEMENT_TYPE.BREAK);
-		}
-
-        // rotation
-        var fXAxis = Input.GetAxis("Mouse X");  // rotates around y-axis
-        var fYAxis = Input.GetAxis("Mouse Y");  // rotates around x-axis
-        if (fXAxis != 0 || fYAxis != 0)
-        {
-            if (fXAxis != 0)
-            {
-                var fXEuler = fXAxis * XSpeed * 0.02f;
-                var vNewForward = Quaternion.AngleAxis(fXEuler, -this.ObjectControlled.GravityDirection) * this.ObjectControlled.ForwardDirection;
-                this.ObjectControlled.SetForwardDirection(vNewForward);
-            }
-
-            if (fYAxis != 0)
-            {
-                var vEuler = this.OffsetRotation.eulerAngles;
-                vEuler.x -= fYAxis * YSpeed * 0.02f;
-                vEuler.x = ClampAngle(vEuler.x, this.YMinLimit, this.YMaxLimit);
-                //vEuler.y = 0;
-                //vEuler.z = 0;
-
-                this.OffsetRotation = Quaternion.Euler(vEuler);
-            }
-        }
-
-        // zoom
-        if (Input.GetAxis("Mouse ScrollWheel") < 0) // back
-        {
-            this.Distance = Mathf.Clamp(this.Distance += 1, this.ZoomMinLimit, this.ZoomMaxLimit);
-        }
-        if (Input.GetAxis("Mouse ScrollWheel") > 0) // forward
-        {
-            this.Distance = Mathf.Clamp(this.Distance -= 1, this.ZoomMinLimit, this.ZoomMaxLimit);
-        }
-	}
-
-    // -------------------------------------------------------------------------------------------
     static float ClampAngle(float fAngle, float fMin, float fMax)
     {
         while (fAngle < -180)
@@ -291,7 +328,7 @@ public class PlayerCameraController : MonoBehaviour
         
         Vector3 jumpVector = -this.ObjectControlled.GravityDirection * jumpForce;
         this.ObjectControlled.GetComponent<Rigidbody>().velocity = jumpVector;
-        Debug.Log($"PlayerCameraController.Jump: Applied Jump Force={jumpForce}, New Velocity={this.ObjectControlled.GetComponent<Rigidbody>().velocity.ToString("F3")}");
+        Debug.Log($"PlayerCameraController.Jump: Applied Jump Force={jumpForce}, Direction={jumpVector.ToString("F3")}, New Velocity={this.ObjectControlled.GetComponent<Rigidbody>().velocity.ToString("F3")}, PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Unknown")}");
     }
 	
 	// -------------------------------------------------------------------------------------------

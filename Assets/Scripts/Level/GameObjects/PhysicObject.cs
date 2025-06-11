@@ -40,6 +40,8 @@ public class PhysicObjekt : GrafikObjekt
 
     protected Rigidbody rb;
 
+    private bool wasGroundedLastFrame = false;
+
     //-----------------------------------------------------------------------------------------------------------------
     public virtual void SetGravityDirection(Vector3 vDirection)
     {
@@ -138,44 +140,37 @@ public class PhysicObjekt : GrafikObjekt
     //-----------------------------------------------------------------------------------------------------------------
     protected virtual void FixedUpdate()
     {
+        if (WorldStateManager.GamePaused)
+            return;
+
         // Detailed logging for debugging physics interference (Task 0B.6)
-        Debug.Log($"PhysicObject.FixedUpdate: Object={name}, PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Unknown")}, Rigidbody.IsKinematic={GetComponent<Rigidbody>().isKinematic}, Rigidbody.UseGravity={GetComponent<Rigidbody>().useGravity}, Velocity={GetComponent<Rigidbody>().velocity.ToString("F3")}");
+        bool currentGroundContact = HasGroundContact();
+        Debug.Log($"PhysicObject.FixedUpdate: Object={this.name}, PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Unknown")}, Rigidbody.IsKinematic={rb.isKinematic}, Rigidbody.UseGravity={rb.useGravity}, Velocity={rb.velocity.ToString("F3")}, GroundContact={currentGroundContact}, GroundContactCount={axGroundContactGameObjects.Count}");
         
-        // Check physics mode to decide whether to apply old system forces
-        if (physicsSettings != null && (physicsSettings.physicsMode == PhysicsMode.CustomPhysics || physicsSettings.physicsMode == PhysicsMode.Hybrid))
+        // Check for transition in ground contact state for jump buffering debugging
+        if (currentGroundContact != wasGroundedLastFrame)
         {
-            Debug.Log($"PhysicObject.FixedUpdate: Skipped applying custom gravity for {name} due to PhysicsMode={physicsSettings.physicsMode.ToString()}");
-            return; // Skip applying old system forces in Custom or Hybrid mode
+            Debug.Log($"PhysicObject.FixedUpdate: Ground contact state changed for {this.name}. New state: {(currentGroundContact ? "Grounded" : "Airborne")}, GroundContactCount={axGroundContactGameObjects.Count}");
         }
+        wasGroundedLastFrame = currentGroundContact;
         
-        // Log decision to apply custom gravity
-        Debug.Log($"PhysicObject.FixedUpdate: Applying custom gravity for {name} in PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Default(UnityPhysics)").ToString()}");
-        
-        // Apply custom gravity forces as in the original system
-        Rigidbody rb = GetComponent<Rigidbody>();
-        rb.AddForce(Gravity);
-        
-        // Log force application result for debugging
-        Debug.Log($"PhysicObject.FixedUpdate: Applied Gravity={Gravity.ToString("F3")} to {name}, New Velocity={rb.velocity.ToString("F3")}");
-        
-        // Update ground contact and orientation vectors (if needed)
-        if (!UseUnityGravity)
+        // Apply custom gravity logic if not using Unity physics
+        if (rb.useGravity == false)
         {
-            // Check physics mode before applying custom gravity
+            // Check physics mode to decide whether to apply custom gravity
             if (physicsSettings != null && (physicsSettings.physicsMode == PhysicsMode.CustomPhysics || physicsSettings.physicsMode == PhysicsMode.Hybrid))
             {
-                // Skip custom gravity force application in CustomPhysics or Hybrid mode
-                UnityEngine.Debug.Log("Skipping custom gravity force in " + physicsSettings.physicsMode + " mode.");
+                Debug.Log($"PhysicObject.FixedUpdate: Skipped applying custom gravity forces due to PhysicsMode={physicsSettings.physicsMode.ToString()}");
+                return; // Skip applying forces in CustomPhysics or Hybrid mode
             }
-            else
+
+            if (HasGroundContact() == false)
             {
-                // Original custom gravity system
-                this.GetComponent<Rigidbody>().AddForce(Gravity);
-                UnityEngine.Debug.Log("Applying custom gravity force in " + (physicsSettings != null ? physicsSettings.physicsMode.ToString() : "default") + " mode.");
+                Vector3 gravityForce = GravityDirection * fGravityStrength * rb.mass;
+                rb.AddForce(gravityForce, ForceMode.Force);
+                Debug.Log($"PhysicObject.FixedUpdate: Applied custom gravity force={gravityForce.ToString("F3")} to {this.name}, New Velocity={rb.velocity.ToString("F3")}");
             }
         }
-        // If UseUnityGravity is true, let Unity handle gravity automatically
-        // Unity's gravity will be applied based on Physics.gravity and Rigidbody.useGravity
     }
 
     //-----------------------------------------------------------------------------------------------------------------
