@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66ba70565632eec43962dab85ab3252e, type: 3}
+  m_Name: PhysicsSettings
+  m_EditorClassIdentifier: 
+  physicsMode: 0
+  enableMigrationLogging: 1
+  validateParameterConversion: 1
+  legacyJumpForce: 5
+  legacySpeedFactor: 1
+  legacyBreakFactor: 10
+  targetJumpHeight: 0.75
+  inputSpeedLimit: 6
+  physicsSpeedLimit: 6.5
+  totalSpeedLimit: 7
+  fixedPointScale: 1000000
+  accumulationThreshold: 1000
+  maxPhysicsUpdateMs: 2
+  physicsUpdateHz: 50
