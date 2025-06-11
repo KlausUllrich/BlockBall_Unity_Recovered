@@ -216,3 +216,12 @@ MainCanvas (Canvas, CanvasScaler, GraphicRaycaster)
 **Solution**: Added reflection-based fix in `Level.cs` StartObject processing to update Player's internal saved position fields (`xLastCollectedScoreItemPosition`, `xOrientationAsLastCollectedScoreItem`) after setting StartObject position.
 
 **Impact**: All levels now properly position the player ball at the intended starting location.
+
+## BlockBall Physics Migration - Project Overview
+
+## Current Status
+- **Phase 0A: Preparation & Compatibility Layer**
+  - [x] **PhysicsSettings ScriptableObject**: Created and implemented to centralize physics parameters.
+  - [x] **IPhysicsObject Interface & Wrapper**: Implemented and attached to PlayerSphere, validated with no observable behavior changes.
+  - [ ] **DeterministicMath**: Implementation pending for consistent physics calculations.
+  - [ ] **Physics Profiling**: To be implemented for performance monitoring.
