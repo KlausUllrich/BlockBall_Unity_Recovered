@@ -5,9 +5,10 @@ part: "2 of 2"
 dependencies:
   - "LLM_02B1_BallPhysics_Component_Overview.md"
 validation_steps:
-  - "Verify speed limiting logic enforces input (6 u/s), physics (7 u/s), and total (8 u/s) caps correctly."
+  - "Verify speed limiting logic enforces input (6 u/s), physics (6.5 u/s), and total (7 u/s) caps correctly with exponential decay starting at 6.65 u/s."
   - "Confirm jump velocity calculation achieves exactly 0.75 units height using v = sqrt(2 * g * h)."
   - "Check that physics behavior (friction, drag) adjusts based on BallStateMachine state."
+  - "Validate jump buffering and coyote time functionality."
 integration_points:
   - "Provides gravity direction methods for GravityZoneDetector integration."
   - "Uses VelocityVerletIntegrator for position updates from Phase 1."
@@ -51,7 +52,17 @@ Complete implementation of the physics update methods:
                 velocity = physicsVelocity; // Update after limiting
             }
 
-            // Limit total speed
+            // Limit total speed with exponential decay
+            float decayStartSpeed = maxTotalSpeed * 0.95f; // Decay starts at 95% of total limit (6.65 u/s)
+            if (velocity.magnitude > decayStartSpeed)
+            {
+                float excessRatio = (velocity.magnitude - decayStartSpeed) / (maxTotalSpeed - decayStartSpeed);
+                float decayRate = 2.0f; // Adjust decay rate as needed
+                float decayedSpeed = maxTotalSpeed * Mathf.Exp(-decayRate * excessRatio);
+                velocity = velocity.normalized * decayedSpeed;
+            }
+
+            // Hard clamp if still above total limit
             if (velocity.magnitude > maxTotalSpeed)
             {
                 velocity = velocity.normalized * maxTotalSpeed;
@@ -61,12 +72,22 @@ Complete implementation of the physics update methods:
             position = VelocityVerletIntegrator.UpdatePosition(position, velocity, PhysicsSettings.Instance.GetCurrentGravity(), deltaTime);
             transform.position = position;
 
-            // Handle jump if requested and grounded
-            if (isJumpRequested && stateMachine.CurrentState == BallState.Grounded)
+            // Handle jump if requested and grounded or within coyote time
+            if (isJumpRequested && (stateMachine.CurrentState == BallState.Grounded || stateMachine.TimeSinceLastGrounded < PhysicsSettings.Instance.coyoteTime))
             {
                 float jumpVelocity = Mathf.Sqrt(2 * PhysicsSettings.Instance.GetCurrentGravity().magnitude * jumpHeight);
                 this.velocity.y += jumpVelocity; // Apply upward impulse
                 stateMachine.TryTransitionTo(BallState.Airborne, "Jump initiated");
+                isJumpRequested = false;
+            }
+
+            // Handle jump buffering
+            if (isJumpRequested && stateMachine.TimeSinceJumpRequest < PhysicsSettings.Instance.jumpBufferTime)
+            {
+                // Keep jump request active for buffer time
+            }
+            else
+            {
                 isJumpRequested = false;
             }
 
@@ -152,11 +173,12 @@ Complete implementation of the physics update methods:
 
 ## Validation Instructions
 1. **Interface Compliance**: Ensure `BallPhysics` implements `IPhysicsObject` with correct property mappings (`Velocity`, `Position`, `Mass`).
-2. **Speed Limits**: Verify that speed limiting logic enforces input (6 u/s), physics (7 u/s), and total (8 u/s) caps correctly.
+2. **Speed Limits**: Verify that speed limiting logic enforces input (6 u/s), physics (6.5 u/s), and total (7 u/s) caps correctly with exponential decay starting at 6.65 u/s.
 3. **Jump Precision**: Confirm jump velocity calculation achieves exactly 0.75 units height using `v = sqrt(2 * g * h)`.
 4. **State Physics**: Check that physics behavior (friction, drag) adjusts based on `BallStateMachine` state.
 5. **Rolling Constraint**: Validate angular velocity `ω = v / r` for realistic rolling in Grounded state.
-6. **Performance**: Ensure integration with profiling tools to keep updates under 2ms.
+6. **Jump Buffering and Coyote Time**: Verify jump buffering and coyote time functionality.
+7. **Performance**: Ensure integration with profiling tools to keep updates under 2ms.
 
 ## Next Steps
 After implementing `BallPhysics.cs`, proceed to `LLM_02C_BallInputProcessor_Task.md` for the input processing component. Log progress in `/Status/Project_Overview.md` and any issues in `/Status/Issues_and_Required_Cleanup.md`.

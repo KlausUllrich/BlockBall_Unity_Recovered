@@ -130,14 +130,17 @@ Speed Combination:
 - Change occurs relative to a specified rotation center per gravity switch block.
 - Gravity directions can change smoothly, but always only for one axis.
 - Leaving a gravity switch snaps the gravity direction to an axis
+- The camera will change its orientation once the gravity snaps to an axis (so gravity down is always visible down for the the player)
+- multi-player independent gravity: only the player is affected by gravity switches
 
 ## Gravity Switching (CLARIFIED)
 
 **Gravity Transition Behavior**:
-- Inside Gravity Zone: Gravity transitions smoothly over 0.3 seconds using ease-in-out curve
+- Inside Gravity Zone: Gravity transitions instantly
 - Leaving Gravity Zone: Gravity immediately snaps to nearest cardinal axis (±X, ±Y, ±Z)
 - Ball Inertia: Ball maintains momentum during transitions, making snap feel natural
 - Camera Smoothing: Camera rotation is always smoothed regardless of gravity snap
+- Gravity transition will allways work no matter if the ball is in air or on ground (or other state)
 
 **Multi-Zone Handling**:
 - When ball is within multiple overlapping gravity zones
@@ -190,55 +193,3 @@ Unity 2022.3 LTS and Unity 6 may differ significantly in:
 - Physics Engine (PhysX): Largely similar. But using custom physics, this doesn't matter.
 
 Recommendation: Use Unity 2022.3 LTS for stability. Unity 6's advantages don't justify migration effort for BlockBall's scope.
-
----
-
-## Implementation Notes
-
-- Needs fixed timestep simulation (50Hz) for all ball movement.
-- Velocity Verlet integrator (RECOMMENDED):
-  ```
-  position(t+dt) = position(t) + velocity(t)*dt + 0.5*acceleration(t)*dt²
-  acceleration(t+dt) = calculateForces(position(t+dt)) / mass
-  velocity(t+dt) = velocity(t) + 0.5*(acceleration(t) + acceleration(t+dt))*dt
-  ```
-  - More accurate than Semi-Implicit Euler, especially for gravity-shifting physics
-  - Better energy conservation over time (±0.1% vs ±2-5%)
-  - Smoother gravity transitions and bounce behavior
-  - Worth the ~50% performance cost for superior game feel
-
-- Clear separation between control input, physics response, and visual feedback.
-- Unity's Job System or Burst Compiler can be used for performant custom physics.
-- Debug HUD to visualize gravity direction, trigger zones, and contact normals.
-
----
-
-## Implementation Architecture
-
-### Core Systems Required
-
-1. Physics Manager: Fixed timestep (50Hz) with Velocity Verlet integration
-2. Ball State Machine: Grounded, Airborne, Sliding, Transitioning states
-3. Collision System: Hybrid approach using Unity detection with custom response
-4. Gravity Manager: Zone-based gravity with smooth transitions and snapping
-5. Speed Controller: Multi-tier limits with exponential decay
-6. Input Processor: Camera-relative input projected onto gravity plane
-7. Debug Visualizer: Real-time physics state visualization
-
-### Performance Targets
-
-- Physics Frame Time: <2ms per frame (50Hz)
-- Memory Allocation: <1KB per second (object pooling)
-- Jump Consistency: ±0.005 Unity units variance
-- Energy Conservation: ±0.1% over 60 seconds
-
----
-
-## Nice to Haves
-
-- Double jump
-- Different ball types with different physical properties and settings (felt mass, bounciness)
-- Dynamic modification of physical properties during runtime
-- Speed-accelerator blocks (similar to gravity switches with invisible effect area, just for directional acceleration)
-- Jump-pad blocks (on ground touch provides a one-time force impulse in one direction)
-- Custom geometry, like half-pipes

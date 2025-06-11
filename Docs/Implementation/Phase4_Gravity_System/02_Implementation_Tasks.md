@@ -76,25 +76,9 @@ namespace BlockBall.Physics
                     break;
                     
                 case GravityTransitionState.InsideTrigger:
-                    // Smooth transition to trigger's target direction
-                    transitionTimer += Time.fixedDeltaTime;
-                    float t = transitionTimer / physicsSettings.gravityTransitionTime;
-                    
-                    if (t >= 1f)
-                    {
-                        // Transition complete
-                        currentGravityDirection = transitionTargetDirection;
-                        transitionState = GravityTransitionState.FreeSpace;
-                    }
-                    else
-                    {
-                        // Smooth interpolation
-                        currentGravityDirection = Vector3.Slerp(
-                            transitionStartDirection, 
-                            transitionTargetDirection, 
-                            Mathf.SmoothStep(0f, 1f, t)
-                        ).normalized;
-                    }
+                    // Instant transition to trigger's target direction
+                    currentGravityDirection = transitionTargetDirection;
+                    transitionState = GravityTransitionState.FreeSpace;
                     break;
                     
                 case GravityTransitionState.ExitingTrigger:
@@ -176,7 +160,7 @@ namespace BlockBall.Physics
             
             if (closest != activeTrigger)
             {
-                // New trigger is now active - start smooth transition
+                // New trigger is now active - start instant transition
                 activeTrigger = closest;
                 StartTransitionToTrigger(closest);
             }
@@ -186,7 +170,6 @@ namespace BlockBall.Physics
         {
             transitionStartDirection = currentGravityDirection;
             transitionTargetDirection = trigger.TargetGravityDirection;
-            transitionTimer = 0f;
             transitionState = GravityTransitionState.InsideTrigger;
         }
         

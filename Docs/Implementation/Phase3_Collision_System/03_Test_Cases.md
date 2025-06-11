@@ -115,7 +115,19 @@ namespace BlockBall.Physics.Tests
 - **Expected**: Predictable bounce direction
 - **Pass Criteria**: No stuck ball, consistent response
 
-### Test Case 4: Penetration Recovery
+### Test Case 4: Smooth Block Transitions (C2)
+- **Setup**: Two adjacent blocks with flat surfaces at the same height
+- **Action**: Roll ball across the transition between blocks
+- **Expected**: No unexpected jumps or elevation shifts during transition
+- **Pass Criteria**: Ball maintains smooth rolling motion across blocks
+
+### Test Case 5: Rolling Feel (C3)
+- **Setup**: Ball on flat surface with different material types
+- **Action**: Apply input to roll ball and observe friction behavior
+- **Expected**: Grippy rolling without floating or sliding
+- **Pass Criteria**: Ball responds to input with consistent friction, no sliding when stationary
+
+### Test Case 6: Penetration Recovery
 - **Setup**: Force ball into solid geometry
 - **Action**: Observe recovery behavior
 - **Expected**: Ball automatically pushed out
@@ -139,8 +151,10 @@ namespace BlockBall.Physics.Tests
 - [ ] Material properties affect collision correctly
 - [ ] Multiple contacts resolve without artifacts
 - [ ] Penetration recovery works automatically
+- [ ] Smooth block transitions with no unexpected jumps (C2)
+- [ ] Rolling feel maintained with grippy contact (C3)
 - [ ] Performance targets met (<1ms, 0KB allocation)
 - [ ] No crashes or stuck ball scenarios
 - [ ] Deterministic collision response
 
-**Pass Threshold**: 6/7 criteria must pass to proceed to Phase 4.
+**Pass Threshold**: 7/9 criteria must pass to proceed to Phase 4.

@@ -35,7 +35,7 @@ Implement a **three-tier speed control system** with exponential decay that enfo
 ### Speed Control Mechanics
 - **Soft Limiting**: Gradual speed reduction rather than hard cutoff
 - **Layer-Based Control**: Different limits for different movement sources
-- **Gravity Relative**: Speed calculations relative to current gravity direction
+- **Gravity Relative**: Speed calculations relative to current gravity direction, ensuring consistent speed magnitude during instant gravity transitions
 - **State Aware**: Speed limits vary based on ball state (grounded/airborne)
 
 ### Performance Requirements

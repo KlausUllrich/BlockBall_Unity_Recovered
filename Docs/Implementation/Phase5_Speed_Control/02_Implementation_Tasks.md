@@ -190,10 +190,17 @@ private void ApplyPhysicsForces()
 }
 ```
 
+#### Step 2: Handle Speed During Gravity Transitions
+Ensure speed control adjusts correctly during instant gravity transitions:
+
+- **Preserve Magnitude**: Maintain the speed magnitude but adjust the velocity direction relative to the new gravity vector upon instant gravity changes.
+- **Integration with Gravity System**: Coordinate with GravityManager to receive updates on gravity direction changes and recalculate velocity vectors accordingly without altering speed limits.
+
 ### Validation Steps
 1. Test input speed limited to 6 u/s
 2. Verify physics calculations don't exceed 6.5 u/s
 3. Confirm total speed control works with ball physics
+4. Validate speed magnitude preservation during instant gravity transitions
 
 ---
 
@@ -295,6 +302,14 @@ namespace BlockBall.Physics
 - [ ] Integrates with ball physics component
 - [ ] Compatible with collision system
 - [ ] Debug visualization functions correctly
+- [ ] Maintains speed magnitude during instant gravity snaps (C5)
+- [ ] Consistent speed control in multi-zone gravity environments (C4)
+- [ ] Speed control handles edge cases: 
+    - [ ] Ball moving at 45 degrees to gravity vector
+    - [ ] Ball moving at 90 degrees to gravity vector
+    - [ ] Ball moving in opposite direction to gravity vector
+    - [ ] Ball moving at high speeds (> 10 u/s)
+    - [ ] Ball moving at low speeds (< 1 u/s)
 
 ## Completion Criteria
 

@@ -10,6 +10,10 @@
 - [ ] **GravityEffects.cs** exists for visual feedback
 - [ ] All scripts compile without errors
 - [ ] All scripts have proper namespace: `BlockBall.Physics`
+- [ ] **PlayerGravityManager** component implemented and attached to player
+- [ ] **PlayerGravityTrigger** detects entry/exit and sets target direction
+- [ ] **GravityDirectionUtility** snaps to cardinal directions correctly
+- [ ] **PhysicsSettings** updated as single source for gravity parameters
 
 ### Gravity Direction Validation
 - [ ] All 6 gravity directions functional (Down, Up, North, South, East, West)
@@ -18,6 +22,10 @@
 - [ ] Gravity strength configurable per level
 - [ ] Direction changes handled correctly
 - [ ] Invalid direction handling robust
+- [ ] Instant gravity transition inside trigger zones (no interpolation)
+- [ ] Immediate snap to nearest cardinal direction on trigger exit
+- [ ] Multi-zone handling: closest pivot point controls gravity direction
+- [ ] Player-specific gravity: environment and other players unaffected
 
 ### Gravity Transition Validation
 - [ ] Smooth transitions between gravity directions
@@ -26,6 +34,7 @@
 - [ ] Transition progress tracking accurate
 - [ ] No physics artifacts during transitions
 - [ ] Transition interruption handling robust
+- [ ] Camera adjusts smoothly to gravity snap (gravity down visually downward)
 
 ### Ball Integration Validation
 - [ ] Ball velocity transforms correctly during gravity changes
@@ -34,6 +43,8 @@
 - [ ] Ball state machine updates with gravity changes
 - [ ] Angular velocity preserved during transitions
 - [ ] Contact points recalculated correctly
+- [ ] Collision system updates ground detection with new gravity direction
+- [ ] Ball physics preserves momentum and state during gravity changes
 
 ### Performance Validation
 - [ ] Gravity processing <0.5ms average during transitions
@@ -42,6 +53,9 @@
 - [ ] No frame drops during gravity transitions
 - [ ] Efficient state caching implemented
 - [ ] Performance profiling integrated
+- [ ] Gravity updates execute under 0.1ms per frame
+- [ ] Zero memory allocation during gravity transitions
+- [ ] No frame rate drops during gameplay with gravity changes
 
 ### Integration Validation
 - [ ] Works with Phase 1 physics manager
@@ -50,6 +64,7 @@
 - [ ] Level-specific gravity configuration working
 - [ ] Debug visualization functional
 - [ ] Event system notifications working
+- [ ] No regressions in Phases 1-3 functionality (movement, collision, ball physics)
 
 ---
 
@@ -64,7 +79,7 @@ namespace BlockBall.Physics.Validation
 {
     public class Phase4GravityValidator : EditorWindow
     {
-        private bool[] checkResults = new bool[30];
+        private bool[] checkResults = new bool[40];
         private string[] checkDescriptions = new string[]
         {
             "GravityManager.cs exists",
@@ -96,7 +111,14 @@ namespace BlockBall.Physics.Validation
             "Phase 1 integration",
             "Phase 2 integration", 
             "Phase 3 integration",
-            "Debug visualization working"
+            "Debug visualization working",
+            "PlayerGravityManager component implemented",
+            "PlayerGravityTrigger detects entry/exit",
+            "GravityDirectionUtility snaps to cardinal directions",
+            "PhysicsSettings updated for gravity parameters",
+            "Instant gravity transition inside trigger zones",
+            "Immediate snap to nearest cardinal direction on trigger exit",
+            "Camera adjusts smoothly to gravity snap"
         };
         
         [MenuItem("BlockBall/Validate Phase 4 Completion")]
@@ -127,7 +149,7 @@ namespace BlockBall.Physics.Validation
                 if (checkResults[i]) totalPassed++;
             }
             
-            if (totalPassed >= 27) // 90% threshold
+            if (totalPassed >= 36) // 90% threshold
             {
                 GUI.color = Color.green;
                 GUILayout.Label("🎉 PHASE 4 COMPLETE! Ready for Phase 5", EditorStyles.boldLabel);
@@ -228,6 +250,22 @@ namespace BlockBall.Physics.Validation
             checkResults[26] = BlockBallPhysicsManager.Instance != null;
             checkResults[27] = FindObjectOfType<BallPhysics>() != null;
             checkResults[28] = FindObjectOfType<CollisionManager>() != null;
+            
+            // Check player gravity manager
+            var playerGravityManager = FindObjectOfType<PlayerGravityManager>();
+            checkResults[32] = playerGravityManager != null;
+            
+            // Check player gravity trigger
+            var playerGravityTrigger = FindObjectOfType<PlayerGravityTrigger>();
+            checkResults[33] = playerGravityTrigger != null;
+            
+            // Check gravity direction utility
+            var gravityDirectionUtility = FindObjectOfType<GravityDirectionUtility>();
+            checkResults[34] = gravityDirectionUtility != null;
+            
+            // Check physics settings
+            var physicsSettings = FindObjectOfType<PhysicsSettings>();
+            checkResults[35] = physicsSettings != null;
         }
         
         private bool TestGravityDirection(GravityDirection direction)
@@ -268,7 +306,7 @@ namespace BlockBall.Physics.Validation
             
             Debug.Log($"Phase 4 Validation: {passed}/{checkResults.Length} checks passed");
             
-            if (passed >= 27)
+            if (passed >= 36)
             {
                 Debug.Log("🎉 PHASE 4 COMPLETE! Ready to proceed to Phase 5.");
             }
@@ -357,4 +395,7 @@ Before proceeding to Phase 5 (Speed Control), verify:
 - [ ] Speed control works during gravity transitions
 - [ ] Performance monitoring ready for speed system
 
-**🎯 SUCCESS THRESHOLD**: 27/30 validation checks must pass (90%) before Phase 5 can begin. This ensures the gravity system is stable enough to handle complex speed control mechanics.
+**🎯 SUCCESS THRESHOLD**: 36/40 validation checks must pass (90%) before Phase 5 can begin. This ensures the gravity system is stable enough to handle complex speed control mechanics.
+
+## Note on Modular Structure
+This document focuses on completion criteria for Phase 4 Gravity System. For implementation details, refer to modular task files in `02_Implementation_Tasks_Summary.md`. LLMs should follow the workflow in the summary to ensure sequential implementation: start with core components (`Task_4.1_PlayerGravityManager.md`), then proceed through triggers, utilities, and integration.

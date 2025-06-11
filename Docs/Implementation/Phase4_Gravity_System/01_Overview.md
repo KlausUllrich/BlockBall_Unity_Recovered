@@ -1,13 +1,13 @@
 # Phase 4: Player Gravity System Overview
 
 ## Mission Statement
-Implement a **player-specific gravity system** that handles gravity direction changes **only when inside gravity switch trigger zones**. Gravity transitions are smooth inside triggers, but **snap to the nearest cardinal direction when exiting triggers**. This system affects only the player ball, not the environment or other players.
+Implement a **player-specific gravity system** that handles gravity direction changes **only when inside gravity switch trigger zones**. Gravity transitions are **instant** inside triggers, and **snap to the nearest cardinal direction when exiting triggers**. This system affects only the player ball, not the environment or other players.
 
 ## Phase Objectives
 1. **Player-Specific Gravity**: Gravity changes affect only the player ball, never the environment
 2. **Trigger-Zone-Only Transitions**: Gravity changes occur **only inside gravity switch trigger zones**
 3. **Exit Behavior**: **Immediate snap to nearest cardinal direction when exiting any trigger zone**
-4. **Smooth Internal Transitions**: Gradual transition to switch direction while inside trigger
+4. **Instant Internal Transitions**: Immediate transition to switch direction while inside trigger
 5. **Multi-Zone Handling**: Closest zone by pivot point controls gravity when overlapping
 
 ## Context & Dependencies
@@ -26,8 +26,8 @@ Implement a **player-specific gravity system** that handles gravity direction ch
 
 ### Trigger-Based Behavior (CRITICAL)
 - **Inside Trigger Zone**: 
-  - Smooth transition to switch's target direction (0.3s interpolation)
-  - Player can experience non-cardinal gravity directions during transition
+  - Instant transition to switch's target direction (no delay or interpolation)
+  - Player experiences immediate change to target gravity direction
 - **Exit Trigger Zone**: 
   - **IMMEDIATE snap to nearest cardinal direction**
   - No gradual transition - instant change
@@ -54,7 +54,7 @@ Implement a **player-specific gravity system** that handles gravity direction ch
 - **PlayerCameraController.cs**: Ensure camera follows gravity changes
 
 ## Success Criteria
-- [ ] Player gravity changes smoothly inside trigger zones
+- [ ] Player gravity changes instantly inside trigger zones
 - [ ] Player gravity snaps to cardinal directions on trigger exit  
 - [ ] Multiple players can have different gravity directions simultaneously
 - [ ] Environment and other objects unaffected by player gravity changes
@@ -102,7 +102,7 @@ private Vector3 SnapToNearestCardinal(Vector3 currentGravity)
 **Issue**: Different behavior inside vs outside triggers
 **Solution**: State-based system with GravityTransitionState enum
 **Implementation**: 
-- **InsideTrigger**: Smooth interpolation to target direction
+- **InsideTrigger**: Immediate change to target direction
 - **ExitingTrigger**: Instant snap to nearest cardinal
 - **FreeSpace**: Maintain current cardinal direction
 
@@ -153,7 +153,7 @@ void OnTriggerStay(Collider pCollider)
     if (player?.PlayerGravity != null)
     {
         var newDirection = CalculateNewGravityDirection(player.transform.position);
-        player.PlayerGravity.SetTargetGravity(newDirection, smooth: true);
+        player.PlayerGravity.SetTargetGravity(newDirection, smooth: false);
     }
 }
 

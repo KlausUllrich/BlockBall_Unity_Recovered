@@ -30,7 +30,7 @@ Implement the **GravityZoneDetector** component that enables **INSTANT** gravity
 - **Key Behavior**: Gravity changes INSTANTLY based on ball position relative to zone geometry
 
 ## Core Functionality
-- **Instant Gravity Switching**: Gravity direction calculated instantly from ball position within zone
+- **Instant Gravity Switching**: Gravity direction calculated instantly from ball position within zone. There is no delay or smooth transition; the change is immediate as per the project specifications.
 - **Airborne Priority**: Overrides GroundDetector to enable airborne gravity transitions  
 - **Multi-Zone Handling**: Manages overlapping zones with closest pivot priority
 - **Cardinal Snapping**: Snaps gravity to nearest axis when exiting all zones

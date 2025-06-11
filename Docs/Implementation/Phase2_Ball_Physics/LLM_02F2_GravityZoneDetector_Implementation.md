@@ -142,7 +142,7 @@ integration_points:
 ## Validation Instructions
 1. **Zone Detection**: Verify trigger enter/exit events correctly add/remove zones from activeZones list
 2. **Multi-Zone Priority**: Test that closest pivot point determines dominant zone when multiple zones overlap
-3. **Instant Switching**: Confirm gravity direction updates every FixedUpdate frame while in zones
+3. **Instant Switching**: Confirm gravity direction updates every FixedUpdate frame while in zones with no delay or interpolation.
 4. **Cardinal Snapping**: Validate gravity snaps to nearest axis when exiting all zones
 5. **State Override**: Ensure Transitioning state is forced while in any gravity zone
 6. **Debug Visualization**: Check that gizmos correctly show gravity direction and active zones

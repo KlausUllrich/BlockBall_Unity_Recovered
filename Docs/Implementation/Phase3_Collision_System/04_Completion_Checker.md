@@ -48,8 +48,14 @@
 - [ ] Integrates with Phase 2 ball physics
 - [ ] Compatible with existing level system
 - [ ] Maintains deterministic behavior
+- [ ] Smooth block transitions with no unexpected jumps (C2)
+- [ ] Rolling feel maintained with grippy contact (C3)
 - [ ] Debug visualization functional
 - [ ] Error handling robust
+
+### Documentation and Modularity Validation
+- [ ] All documents modular and under 200 lines each
+- [ ] Single source of truth enforced (no hardcoded physics values)
 
 ---
 
@@ -64,7 +70,7 @@ namespace BlockBall.Physics.Validation
 {
     public class Phase3CompletionValidator : EditorWindow
     {
-        private bool[] checkResults = new bool[25];
+        private bool[] checkResults = new bool[27];
         private string[] checkDescriptions = new string[]
         {
             "ContactPoint.cs exists",
@@ -91,7 +97,11 @@ namespace BlockBall.Physics.Validation
             "Object pooling working",
             "Phase 1 integration",
             "Phase 2 integration",
-            "Debug visualization"
+            "Debug visualization",
+            "Smooth block transitions (C2)",
+            "Rolling feel maintained (C3)",
+            "Single source of truth enforced",
+            "All documents modular and under 200 lines each"
         };
         
         [MenuItem("BlockBall/Validate Phase 3 Completion")]
@@ -122,15 +132,15 @@ namespace BlockBall.Physics.Validation
                 if (checkResults[i]) totalPassed++;
             }
             
-            if (totalPassed >= 22) // 90% threshold
+            if (totalPassed >= 24) // 90% threshold
             {
                 GUI.color = Color.green;
-                GUILayout.Label("🎉 PHASE 3 COMPLETE! Ready for Phase 4", EditorStyles.boldLabel);
+                GUILayout.Label(" PHASE 3 COMPLETE! Ready for Phase 4", EditorStyles.boldLabel);
             }
             else
             {
                 GUI.color = Color.red;
-                GUILayout.Label($"❌ Phase 3 incomplete ({totalPassed}/{checkResults.Length}). Fix failing checks.", EditorStyles.boldLabel);
+                GUILayout.Label($" Phase 3 incomplete ({totalPassed}/{checkResults.Length}). Fix failing checks.", EditorStyles.boldLabel);
             }
             
             GUI.color = Color.white;
@@ -141,7 +151,7 @@ namespace BlockBall.Physics.Validation
             for (int i = 0; i < checkDescriptions.Length; i++)
             {
                 GUI.color = checkResults[i] ? Color.green : Color.red;
-                string status = checkResults[i] ? "✓" : "✗";
+                string status = checkResults[i] ? "" : "";
                 GUILayout.Label($"{status} {checkDescriptions[i]}");
             }
             GUI.color = Color.white;
@@ -228,13 +238,13 @@ namespace BlockBall.Physics.Validation
             
             Debug.Log($"Phase 3 Validation: {passed}/{checkResults.Length} checks passed");
             
-            if (passed >= 22)
+            if (passed >= 24)
             {
-                Debug.Log("🎉 PHASE 3 COMPLETE! Ready to proceed to Phase 4.");
+                Debug.Log(" PHASE 3 COMPLETE! Ready to proceed to Phase 4.");
             }
             else
             {
-                Debug.LogWarning($"❌ Phase 3 incomplete. {checkResults.Length - passed} issues to resolve.");
+                Debug.LogWarning($" Phase 3 incomplete. {checkResults.Length - passed} issues to resolve.");
             }
         }
     }
@@ -331,4 +341,4 @@ Before proceeding to Phase 4 (Gravity System), verify:
 - [ ] Performance remains stable during gravity switches
 - [ ] Debug visualization shows gravity effects
 
-**🎯 SUCCESS THRESHOLD**: 22/25 validation checks must pass (90%) before Phase 4 can begin. This ensures the collision system is solid enough to handle complex gravity transitions.
+** SUCCESS THRESHOLD**: 24/27 validation checks must pass (90%) before Phase 4 can begin. This ensures the collision system is solid enough to handle complex gravity transitions.

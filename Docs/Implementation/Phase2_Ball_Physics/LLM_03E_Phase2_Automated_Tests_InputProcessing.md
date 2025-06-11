@@ -8,7 +8,7 @@ dependencies:
 validation_steps:
   - "Verify that input is processed relative to camera orientation."
   - "Confirm diagonal input normalization prevents speed exploits."
-  - "Ensure jump buffering (0.1s) and coyote time (0.15s) work as specified."
+  - "Ensure jump buffering (PhysicsSettings.Instance.jumpBufferTime) and coyote time (PhysicsSettings.Instance.coyoteTime) work as specified."
 integration_points:
   - "Tests BallInputProcessor.cs for input handling accuracy."
   - "Integrates with Unity Test Framework for automation."
@@ -17,23 +17,23 @@ integration_points:
 # Phase 2: Ball Physics - Automated Tests for Input Processing
 
 ## Objective
-Create an automated test script to validate the behavior of `BallInputProcessor.cs`, ensuring input is processed relative to camera orientation, diagonal input is normalized to prevent speed exploits, and jump buffering (0.1s) and coyote time (0.15s) function as designed for responsive control.
+Create an automated test script to validate the behavior of `BallInputProcessor.cs`, ensuring input is processed relative to camera orientation, diagonal input is normalized to prevent speed exploits, and jump buffering (PhysicsSettings.Instance.jumpBufferTime) and coyote time (PhysicsSettings.Instance.coyoteTime) function as designed for responsive control.
 
 ## Test Overview
 - **Purpose**: Ensure input handling is accurate and enhances gameplay feel in BlockBall Evolution by validating camera-relative movement, normalized input magnitude, and timing mechanics for jumps.
 - **Key Metrics**:
   - Camera-relative input: Movement direction aligns with camera forward/right vectors.
   - Diagonal normalization: Input magnitude never exceeds 1.0 (e.g., forward+right input).
-  - Jump buffering: Jump input within 0.1s before grounding is executed upon grounding.
-  - Coyote time: Jump allowed within 0.15s after leaving ground.
+  - Jump buffering: Jump input within PhysicsSettings.Instance.jumpBufferTime before grounding is executed upon grounding.
+  - Coyote time: Jump allowed within PhysicsSettings.Instance.coyoteTime after leaving ground.
 - **Environment**: Unity Test Framework (NUnit) in Editor mode for automated execution.
 
 ## Test Implementation Steps
 1. **Setup Test Scene**: Create a test scene with a flat ground plane, a ball GameObject with `BallInputProcessor`, `BallPhysics`, and `BallStateMachine`, and a configurable camera.
 2. **Camera-Relative Input Test**: Rotate camera and apply input (e.g., forward) to confirm output velocity aligns with camera orientation.
 3. **Diagonal Normalization Test**: Simulate combined inputs (e.g., forward+right) and verify the resulting velocity magnitude is capped at the same value as single-axis input.
-4. **Jump Buffering Test**: Apply jump input just before grounding (within 0.1s) and confirm jump executes upon ground contact.
-5. **Coyote Time Test**: Apply jump input just after leaving ground (within 0.15s) and confirm jump still executes.
+4. **Jump Buffering Test**: Apply jump input just before grounding (within PhysicsSettings.Instance.jumpBufferTime) and confirm jump executes upon ground contact.
+5. **Coyote Time Test**: Apply jump input just after leaving ground (within PhysicsSettings.Instance.coyoteTime) and confirm jump still executes.
 6. **Result Logging**: Log test results including pass/fail status, input directions, magnitudes, and timing accuracies.
 7. **Automation**: Use Unity Test Framework’s `[UnityTest]` attribute for coroutine-based testing over multiple frames to simulate timing and physics.
 
@@ -220,8 +220,8 @@ namespace BlockBall.Physics.Tests
 ## Validation Instructions
 1. **Camera-Relative Input**: Ensure tests confirm input direction adjusts based on camera orientation (e.g., forward input aligns with camera forward).
 2. **Diagonal Normalization**: Verify diagonal input (forward+right) results in the same speed magnitude as single-axis input.
-3. **Jump Buffering**: Confirm jump input within buffer time before grounding triggers a jump upon ground contact.
-4. **Coyote Time**: Ensure jump input within coyote time after leaving ground still triggers a jump.
+3. **Jump Buffering**: Confirm jump input within PhysicsSettings.Instance.jumpBufferTime before grounding triggers a jump upon ground contact.
+4. **Coyote Time**: Ensure jump input within PhysicsSettings.Instance.coyoteTime after leaving ground still triggers a jump.
 5. **Result Logging**: Check that logs detail pass/fail status, input directions, magnitudes, and timing accuracies for traceability.
 
 ## Next Steps

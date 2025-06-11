@@ -1,19 +1,21 @@
-# Phase 4: Gravity System Integration Tasks
+# Phase 4: Gravity System Integration Tasks Summary
 
 ## Overview
-This file previously contained detailed integration tasks for the Phase 4 Gravity System. To maintain modular documentation under 200 lines for optimal LLM processing, the content has been split into focused modular files.
+This document serves as an index and summary for the modular integration tasks of the Phase 4 Gravity System. Each task is detailed in a separate file to maintain documents under 200 lines for optimal LLM processing.
 
 ## Modular Integration Tasks
-Please refer to the following documents for detailed integration tasks:
 - **Task_4.5_PlayerComponent_Integration.md**: Extend Player class with PlayerGravityComponent for gravity response and camera orientation.
 - **Task_4.6_GravitySwitchHelper_Enhancement.md**: Update GravitySwitchHelper to support player-specific gravity changes.
 - **Task_4.7_CameraController_Integration.md**: Adjust camera controller to follow gravity direction changes.
 
-## Summary Index
-For a complete overview and workflow of integration tasks, refer to `03_Integration_Tasks_Summary.md`. This file outlines the sequence for implementation to ensure correct integration with existing systems.
-
 ## Purpose of Modular Structure
 Documents are split to ensure each file remains under 200 lines while preserving all content, facilitating efficient LLM processing with complete context and zero information loss.
+
+## Workflow for Integration
+1. Start with `Task_4.5_PlayerComponent_Integration.md` to integrate gravity with player physics.
+2. Proceed to `Task_4.6_GravitySwitchHelper_Enhancement.md` for compatibility with existing prefabs.
+3. Complete integration with `Task_4.7_CameraController_Integration.md` for camera behavior.
+4. Refer to test cases in `03_Test_Cases.md` for validation scenarios.
 
 ## Related Documents
 - **01_Overview.md**: High-level mission and objectives for Phase 4.
@@ -22,4 +24,4 @@ Documents are split to ensure each file remains under 200 lines while preserving
 - **04_Completion_Checker.md**: Checklist and validation scripts for Phase 4 completion.
 
 ## Directive for LLM
-Follow the sequence of integration tasks as prioritized in `03_Integration_Tasks_Summary.md`. Use 'Related Documents' sections in each file to maintain context and cross-reference. Log progress in `/Docs/Status/Project_Overview.md` and issues in `/Docs/Status/Issues_and_Required_Cleanup.md`.
+Follow the sequence of integration tasks as prioritized above. Use 'Related Documents' sections in each file to maintain context and cross-reference. Log progress in `/Docs/Status/Project_Overview.md` and issues in `/Docs/Status/Issues_and_Required_Cleanup.md`.

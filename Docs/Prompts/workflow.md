@@ -11,6 +11,8 @@
 - Stricly adhere to a single-source-of-truth policy
 - No magic/hardcoded values
 - Avoid overengineering or unnecessary complexity
+- Focus on game requirements over technical elegance
+- avoid creating files longer than 200 lines of code where possible
 
 ## User Interaction
 - Assume users may have limited technical knowledge; explanations, prompts, and documentation should be clear, concise, and beginner-friendly.

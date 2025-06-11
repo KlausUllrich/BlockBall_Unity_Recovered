@@ -23,8 +23,8 @@ Create an automated test script to validate the behavior of `GroundDetector.cs`,
 ## Test Overview
 - **Purpose**: Ensure ground detection reliably determines the ball’s state (Grounded, Airborne, Sliding), critical for correct physics behavior in BlockBall Evolution.
 - **Key Metrics**:
-  - Ground contact detection within 0.55 units (entering Grounded) and 0.6 units (leaving Grounded) for hysteresis.
-  - Slope angle detection above 45° triggers Sliding state.
+  - Ground contact detection within PhysicsSettings.Instance.groundCheckDistance (entering Grounded) and PhysicsSettings.Instance.groundLeaveDistance (leaving Grounded) for hysteresis.
+  - Slope angle detection above PhysicsSettings.Instance.maxSlopeAngle triggers Sliding state.
   - State stability with no rapid flickering at edge conditions.
 - **Environment**: Unity Test Framework (NUnit) in Editor mode for automated execution.
 

@@ -10,7 +10,7 @@ dependencies:
   - "Phase1_Migration_Strategy/LLM_03A_Phase1_Overview.md"
 validation_steps:
   - "Verify that BallPhysics implements IPhysicsObject for Phase 1 integration."
-  - "Confirm physics calculations respect speed limits (input 6 u/s, physics 7 u/s, total 8 u/s)."
+  - "Confirm physics calculations respect speed limits (input 6 u/s, physics 6.5 u/s, total 7 u/s)."
   - "Ensure jump mechanics achieve exactly 0.75 units height with correct velocity."
 integration_points:
   - "Integrates with BlockBallPhysicsManager and VelocityVerletIntegrator from Phase 1."
@@ -28,7 +28,7 @@ Implement `BallPhysics.cs` as the core physics component for the ball, integrati
 - **Key Features**:
   - Registers with `BlockBallPhysicsManager` for physics updates.
   - Uses `VelocityVerletIntegrator` for accurate position and velocity updates.
-  - Enforces three-tier speed limits: input (6 u/s), physics (7 u/s), total (8 u/s).
+  - Enforces three-tier speed limits: input (6 u/s), physics (6.5 u/s), total (7 u/s).
   - Calculates precise jump velocity for 0.75 unit (6 Bixel) height.
   - Adjusts friction and drag based on state from `BallStateMachine`.
 
@@ -38,8 +38,8 @@ Implement `BallPhysics.cs` as the core physics component for the ball, integrati
 3. **Physics Update**: Leverage `VelocityVerletIntegrator` for accurate physics simulation, applying forces and updating position/velocity.
 4. **Speed Limiting**: Apply three-tier speed constraints:
    - Limit input-driven velocity to 6 units/second.
-   - Limit physics-driven velocity (e.g., gravity, collisions) to 7 units/second.
-   - Cap total velocity magnitude to 8 units/second.
+   - Limit physics-driven velocity (e.g., gravity, collisions) to 6.5 units/second.
+   - Cap total velocity magnitude to 7 units/second.
 5. **Jump Mechanics**: Calculate initial jump velocity using `v = sqrt(2 * g * h)` for a height of 0.75 units, triggered by input when Grounded.
 6. **Rolling Physics**: For Grounded state, apply angular velocity constraint `ω = v / r` (radius = 0.5 units) to ensure realistic rolling without sliding.
 7. **Debug Profiling**: Integrate with Phase 1 performance profiling to ensure physics updates stay under 2ms.

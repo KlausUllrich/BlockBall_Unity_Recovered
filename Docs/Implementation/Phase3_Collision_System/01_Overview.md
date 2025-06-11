@@ -14,6 +14,45 @@ Implement a comprehensive collision detection and response system that provides 
 **Requires Phase 1**: Core physics architecture and Velocity Verlet integration
 **Requires Phase 2**: Ball physics component, state machine, and ground detection foundation
 
+## Modular Structure of Phase 3 Collision System Documentation
+
+This documentation is split into smaller, focused files to ensure each is under 200 lines for optimal LLM processing. Below is the categorized list of documents for Phase 3:
+
+### Core Overview and Objectives
+- **01_Overview.md**: High-level mission, objectives, and workflow (this document)
+- **02_Implementation_Tasks_Summary.md**: Summary and index of modular implementation tasks
+
+### Implementation Tasks (Modular)
+- **Task_3.1_ContactPoint.md**: Data structure for collision contact information
+- **Task_3.2_MaterialProperties.md**: Essential material properties for collision response
+- **Task_3.3_CollisionResponse.md**: Deterministic collision response algorithms
+
+### Test Cases and Validation
+- **03_Test_Cases.md**: Automated and manual test scenarios for collision system validation
+- **04_Completion_Checker.md**: Checklist and automated validation script for Phase 3 completion
+
+## Workflow for LLM Implementation
+
+**New Workflow**: When implementing modular components:
+1. **Start with Overview Documents**: Begin with `01_Overview.md` for mission and context.
+2. **Follow Implementation Tasks**: Proceed to `02_Implementation_Tasks_Summary.md` for an index of tasks, then address each modular task file (`Task_3.1_ContactPoint.md`, `Task_3.2_MaterialProperties.md`, `Task_3.3_CollisionResponse.md`) in sequence.
+3. **Validate with Test Cases**: Use `03_Test_Cases.md` to implement and run test suites after completing tasks.
+4. **Check Completion**: Refer to `04_Completion_Checker.md` to ensure all criteria are met before moving to Phase 4.
+5. **Cross-Reference Between Files**: Use 'Related Documents' sections in each file to maintain context and continuity.
+
+**Purpose of Modular Structure**: Documents are split to maintain under 200 lines each while preserving all content, ensuring optimal LLM processing with complete context and zero information loss.
+
+**Implementation Priority**:
+1. ContactPoint Data Structure (`Task_3.1_ContactPoint.md`)
+2. MaterialProperties System (`Task_3.2_MaterialProperties.md`)
+3. CollisionResponse Algorithms (`Task_3.3_CollisionResponse.md`)
+4. Run test suites to validate implementation (`03_Test_Cases.md`)
+
+## Directive for LLM
+Start with `01_Overview.md` for a high-level understanding and follow the workflow sequence for implementation. Use YAML headers or structured sections for context, dependencies, and validation steps in each document. Log progress in `/Docs/Status/Project_Overview.md` and issues in `/Docs/Status/Issues_and_Required_Cleanup.md`.
+
+**Purpose of Tailoring**: These documents are optimized for LLM usage with a modular structure, explicit instructions, error handling, and clear metadata to ensure complete understanding and zero-error execution.
+
 ## Key Technical Specifications
 
 ### Collision Detection Strategy
@@ -25,10 +64,11 @@ Implement a comprehensive collision detection and response system that provides 
 
 ### Bounce Mechanics
 - **Restitution Range**: 0.1 (soft) to 0.7 (bouncy) based on contact angle
-- **Formula**: `restitution = baseRestitution * (1 - contactAngle/90°)`
+- **Formula**: `restitution = lerp(0.1, 0.7, contact_angle_factor)` where `contact_angle_factor = dot(velocity_direction, surface_normal)`
 - **Energy Conservation**: Velocity magnitude reduced by (1 - restitution)
 - **Direction Calculation**: Perfect reflection with surface normal
 - **Minimum Bounce**: Prevent infinite micro-bounces below threshold
+- **Maximum Bounce Height**: Bounce force never exceeds jump height (0.75 Unity units)
 
 ### Material System
 - **Metal Blocks**: High restitution (0.6), low friction (0.2)
@@ -64,6 +104,8 @@ Implement a comprehensive collision detection and response system that provides 
 - [ ] Bounce height matches restitution calculations (±2%)
 - [ ] No penetration artifacts or stuck ball scenarios
 - [ ] Smooth transitions between different surface materials
+- [ ] Smooth block transitions with no unexpected jumps or elevation shifts
+- [ ] Rolling feel maintained with grippy contact, avoiding floating or sliding
 - [ ] Performance target: <1ms collision processing per frame
 - [ ] Zero memory allocation during collision processing
 - [ ] Handles 20+ simultaneous collisions without frame drops
@@ -83,7 +125,7 @@ Implement a comprehensive collision detection and response system that provides 
 ### Challenge 3: Corner Collisions
 **Issue**: Ball hitting block corners can produce unpredictable results
 **Solution**: Special case detection for edge/corner contacts
-**Implementation**: Contact point analysis and averaged normal calculation
+**Implementation**: Contact point analysis and averaged normal calculation to ensure smooth transitions
 
 ### Challenge 4: Multiple Simultaneous Collisions
 **Issue**: Ball contacting multiple surfaces simultaneously

@@ -132,7 +132,92 @@ namespace BlockBall.Physics.Tests
         }
     }
 }
-```
+
+## Integration Test Scenarios
+
+### Collision System Integration (Critical)
+- [ ] Ground detection updates instantly with new gravity direction
+  - **Setup**: Place player on ground, trigger gravity change to side (e.g., Vector3.right)
+  - **Expected**: Ground detection recalculates based on new gravity; player remains 'grounded' if contact persists
+- [ ] Contact point recalculation during gravity transition
+  - **Setup**: Player collides with wall during gravity change
+  - **Expected**: Contact points adjust to new gravity direction; no penetration or unexpected jumps
+- [ ] Rolling feel preserved under gravity changes (Ref: Requirement C3)
+  - **Setup**: Player rolling on surface, trigger gravity change
+  - **Expected**: Friction and rolling behavior consistent before/after gravity switch
+- [ ] Block transition jumps prevented during gravity snap (Ref: Requirement C2)
+  - **Setup**: Player crossing block edge during gravity snap on exit
+  - **Expected**: No unexpected jumps; smooth transition across blocks
+- [ ] Bounce response adjusts to new gravity direction
+  - **Setup**: Player bounces off surface, gravity changes mid-air
+  - **Expected**: Bounce velocity reflects new gravity direction post-change
+
+### Camera Integration
+- [ ] Camera follows gravity snap on trigger exit
+  - **Setup**: Exit trigger zone with gravity snap to Vector3.right
+  - **Expected**: Camera rotates smoothly to ensure 'gravity down' is visually downward
+- [ ] Camera stability during instant gravity change inside trigger
+  - **Setup**: Enter trigger with instant gravity change
+  - **Expected**: Camera adjusts without jarring motion or disorientation
+
+### Ball Physics Integration
+- [ ] Ball state machine handles gravity changes
+  - **Setup**: Change gravity while in various states (grounded, airborne, rolling)
+  - **Expected**: State transitions remain logical; no state lock or invalid behavior
+- [ ] Momentum preserved during gravity transitions
+  - **Setup**: Player moving fast, trigger gravity change
+  - **Expected**: Velocity vector maintained relative to new gravity direction
+
+## Performance Test Scenarios
+- [ ] Gravity updates < 0.1ms per frame
+- [ ] Zero memory allocation during gameplay
+- [ ] No frame rate drops during gravity transitions
+
+## Edge Case Scenarios
+- [ ] Multiple overlapping gravity triggers
+  - **Setup**: Place two gravity triggers overlapping with different directions
+  - **Expected**: Closest pivot point trigger controls gravity
+- [ ] Rapid trigger entry/exit
+  - **Setup**: Player moves quickly through multiple triggers
+  - **Expected**: Gravity updates correctly without flickering or lag
+- [ ] Non-cardinal trigger directions
+  - **Setup**: Trigger with diagonal target direction
+  - **Expected**: Instant transition inside; snaps to cardinal on exit
+
+## Automated Test Scripts
+
+### GravityDirectionTests.cs
+```csharp
+[TestFixture]
+public class GravityDirectionTests
+{
+    [Test]
+    public void TestCardinalSnapOnExit()
+    {
+        // Test snap to nearest cardinal direction on trigger exit
+    }
+    
+    [Test]
+    public void TestInstantTransitionInsideTrigger()
+    {
+        // Verify instant gravity change inside trigger zone
+    }
+    
+    [Test]
+    public void TestClosestPivotSelection()
+    {
+        // Validate multi-zone handling with closest pivot point
+    }
+    
+    [Test]
+    public void TestCollisionGroundDetection()
+    {
+        // Ensure ground detection updates with gravity direction
+    }
+}
+
+## Note on Modular Structure
+This document focuses on test cases for the Phase 4 Gravity System. For implementation details, refer to modular task files listed in `02_Implementation_Tasks_Summary.md`. LLMs should follow the workflow outlined in the summary file to ensure tasks are implemented in sequence: start with core components (`Task_4.1_PlayerGravityManager.md`), then triggers (`Task_4.2_PlayerGravityTrigger.md`), before addressing integration and testing.
 
 ## Manual Test Cases
 
