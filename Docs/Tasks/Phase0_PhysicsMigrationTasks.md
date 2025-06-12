@@ -59,6 +59,30 @@ The following tasks focus on integrating the new physics modes while addressing 
   - Add logs in `PlayerCameraController.cs` and `PhysicObject.cs` to track when forces are applied and under what conditions.
 - **Expected Outcome**: Easy identification of conflicts or overrides between systems during testing.
 
+## Phase 0C: Speed Limits and Settings Organization
+### Task 0C.1: Organize Physics Settings by Mode
+- **Objective**: Reorganize `PhysicsSettings` to clearly separate parameters by physics mode.
+- **Implementation**:
+  - Group settings in `PhysicsSettings.cs` by mode (Unity, Hybrid, Custom) with clear headers and tooltips.
+  - Ensure each parameter has a descriptive name and tooltip explaining its purpose and impact on gameplay.
+- **Expected Outcome**: Improved readability and ease of use for developers adjusting physics settings.
+
+### Task 0C.2: Speed Limits Debugging
+- **Status**: In Progress
+- **Objective**: Ensure `physicsSpeedLimit` has an observable effect in CustomPhysics mode and replace hardcoded directional speed limits with configurable parameters in `PhysicsSettings`.
+- **Progress**:
+  - Added configurable parameters `forwardForceMagnitude`, `sidewaysForceMagnitude`, and `backwardForceMagnitude` in `PhysicsSettings.cs` with ranges from 5 to 15, preserving original hardcoded values (8.0 forward/sideways, 3.0 backward).
+  - Renamed `inputForceMagnitude` to `inputForceScale` (default 1.0 for original behavior) as a scaling factor for movement forces.
+  - Updated `PlayerCameraController.cs` to use new directional force magnitudes and skip movement force application in CustomPhysics mode.
+  - Implemented movement forces in CustomPhysics mode within `PhysicsObjectWrapper.cs` to ensure `physicsSpeedLimit` affects gameplay.
+  - Consolidated speed limit enforcement to `PhysicsObjectWrapper.cs` for all physics modes, using mode-specific limits (`totalSpeedLimit`, `hybridSpeedLimit`, `physicsSpeedLimit`).
+  - Reorganized `PhysicsSettings.cs` by mode (Unity, Hybrid, Custom) with detailed tooltips explaining each parameter's purpose and impact.
+  - Fixed compiler errors related to removed properties (`legacyGravity`, `useUnityGravity`) by using hardcoded values or simplified logic.
+- **Next Steps**:
+  - Test updated directional force parameters and scaling factor in gameplay for tuning.
+  - Adjust force magnitudes and speed limits as needed for desired gameplay feel.
+  - Monitor logs for velocity capping and force application issues.
+
 ## Testing and Validation
 - **Test Scene**: Use a dedicated test scene (e.g., `TestCamera`) to evaluate physics behavior across modes.
 - **Criteria**:
