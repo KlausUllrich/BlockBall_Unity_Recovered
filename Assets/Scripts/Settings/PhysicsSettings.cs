@@ -40,13 +40,21 @@ namespace BlockBall.Settings
         [Range(5f, 20f)]
         public float legacyBreakFactor = 10.0f;
         
-        [Tooltip("Maximum speed limit (in blocks per second, 1 block = 1 Unity unit) for objects in UnityPhysics mode. Caps total velocity to ensure consistent movement. Range from 0.5 to 5.0.")]
-        [Range(0.5f, 5.0f)]
+        [Tooltip("Total speed limit (in blocks per second, 1 block = 1 Unity unit) for objects in UnityPhysics mode. Caps total velocity to ensure consistent movement. Range from 0.5 to 5.0.")]
+        [Range(3.0f, 10.0f)]
         public float totalSpeedLimit = 3.0f;
+        
+        [Tooltip("Linear drag for the Rigidbody in UnityPhysics mode. Controls how quickly the ball slows down linearly. Higher values mean faster slowdown, reducing rolling distance. Current observed value is 1.0. Range from 0.0 to 5.0.")]
+        [Range(0.0f, 5.0f)]
+        public float linearDrag = 1.0f;
+        
+        [Tooltip("Angular drag for the Rigidbody in UnityPhysics mode. Controls how quickly the ball stops rotating. Higher values mean faster rotational slowdown, affecting rolling behavior. Current observed value is 2.5. Range from 0.0 to 10.0.")]
+        [Range(0.0f, 10.0f)]
+        public float angularDrag = 2.5f;
         
         [Header("Hybrid Mode Settings")]
         [Tooltip("Maximum speed limit (in blocks per second, 1 block = 1 Unity unit) for objects in Hybrid mode. Caps total velocity combining Unity and custom physics elements. Uses the same value as UnityPhysics mode for consistency. Range from 0.5 to 5.0.")]
-        [Range(0.5f, 5.0f)]
+        [Range(3.0f, 10.0f)]
         public float hybridSpeedLimit = 3.0f; // Same as totalSpeedLimit by default
         
         [Header("Custom Physics Mode Settings")]

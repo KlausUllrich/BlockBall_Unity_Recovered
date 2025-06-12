@@ -33,3 +33,5 @@
 - Ask user how to document changes
 
 Read the complete /Status/Project_Overview.md file
+Read the complete /Status/physics_architecture.md file
+Keep both files updated

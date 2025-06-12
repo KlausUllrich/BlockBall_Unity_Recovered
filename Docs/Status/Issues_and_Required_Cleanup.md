@@ -49,6 +49,28 @@ last_updated: "2025-06-11"
 - **Error Handling**: Added try-catch block on [date] for robust loading of PhysicsSettings asset in PhysicsObjectWrapper.cs to handle potential loading errors; updated error message to provide actionable guidance for creating the asset if missing.
 - **Type Qualification**: Fully qualified PhysicsSettings type as BlockBall.Settings.PhysicsSettings on [date] in PhysicsObjectWrapper.cs to resolve potential namespace reference issues.
 
+## Physics Migration Issues - Phase 0C
+- **Speed Limits Validation Completed** (Updated 2025-06-12): User feedback confirms that speed limits are working as expected across UnityPhysics, Hybrid, and CustomPhysics modes. No further action needed on this task unless new issues arise.
+
+- **Legacy Parameters No Impact** (Updated 2025-06-12): User feedback indicates that `legacySpeedFactor` and `legacyBreakFactor` in `PhysicsSettings.cs` do not have an observable effect in UnityPhysics mode. Investigation required to determine if these parameters are being applied correctly in `PlayerCameraController.cs` or `PhysicObject.cs`. Potential fix may involve adding or correcting logic to scale movement forces or braking behavior based on these factors. Logging will be added to track their usage.
+
+- **Legacy Break Factor No Observable Impact (Phase 0C)**
+  - **Status**: In Progress
+  - **Issue**: Despite applying braking forces scaled by `legacyBreakFactor`, the braking effect is minimal and slow in UnityPhysics mode.
+  - **Findings**:
+    - Velocity capping interference ruled out with conditional logic in `PhysicsObjectWrapper.cs`.
+    - Slow velocity decay observed in logs, indicating braking force may be applied but insufficient.
+    - Confirmed `Move` method with braking logic is not called without player input, preventing braking checks.
+  - **Diagnostics**:
+    - Added detailed logging for Rigidbody properties (mass, drag, angular drag) when braking force is applied.
+    - Added logging in `PlayerCameraController.Move` to confirm braking condition checks, but method not invoked without input.
+    - Added braking logic directly in `FixedUpdate` of `PlayerCameraController` to ensure evaluation even without movement input.
+  - **Next Steps**:
+    - Review logs to confirm braking logic in `FixedUpdate` is triggered and assess impact.
+    - Investigate Rigidbody settings (mass, drag) and physics materials in Unity Editor if braking remains weak.
+
+- **CustomPhysics Input Direction Issue** (Updated 2025-06-12): User feedback notes that input directions in CustomPhysics mode are currently absolute (world coordinates) rather than relative to camera orientation. This needs to be updated in `PhysicsObjectWrapper.cs` to transform input vectors based on camera forward and right directions for intuitive control.
+
 ## Risk Mitigation Actions
 - **Jump Feel Changes**: Implement extensive playtesting and gradual transition options via `PhysicsMode` to prevent altering player muscle memory.
 - **Performance Regression**: Continuous monitoring via `PhysicsProfiler` and automatic fallback if targets are missed.

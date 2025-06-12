@@ -176,28 +176,7 @@ public class PhysicsObjectWrapper : MonoBehaviour, IPhysicsObject
                 float customSpeedLimit = physicsSettings != null ? physicsSettings.physicsSpeedLimit : 2.0f;
                 Vector3 customVelocity = rigidBody.velocity;
                 // Implement basic movement forces in CustomPhysics mode
-                if (this.gameObject.name.Contains("Player") || this.gameObject.name.Contains("Sphere")) // Assuming player object
-                {
-                    float forwardForce = physicsSettings != null ? physicsSettings.forwardForceMagnitude : 8.0f;
-                    float sidewaysForce = physicsSettings != null ? physicsSettings.sidewaysForceMagnitude : 8.0f;
-                    float backwardForce = physicsSettings != null ? physicsSettings.backwardForceMagnitude : 3.0f;
-                    float inputScale = physicsSettings != null ? physicsSettings.inputForceScale : 1.0f;
-                    Vector3 movementForce = Vector3.zero;
-                    if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
-                        movementForce += Vector3.forward * forwardForce * inputScale;
-                    if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
-                        movementForce += Vector3.back * backwardForce * inputScale;
-                    if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
-                        movementForce += Vector3.right * sidewaysForce * inputScale;
-                    if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
-                        movementForce += Vector3.left * sidewaysForce * inputScale;
-                    if (movementForce != Vector3.zero)
-                    {
-                        rigidBody.AddForce(movementForce, ForceMode.Force);
-                        if (physicsSettings != null && physicsSettings.enableMigrationLogging)
-                            Debug.Log($"CustomPhysics mode for {this.name}: Applied movement force {movementForce.magnitude}");
-                    }
-                }
+                ApplyCustomPhysicsMovement();
                 
                 if (customVelocity.magnitude > customSpeedLimit)
                 {
@@ -235,20 +214,85 @@ public class PhysicsObjectWrapper : MonoBehaviour, IPhysicsObject
 
             case PhysicsMode.UnityPhysics:
                 // Unity physics mode: Cap velocity at totalSpeedLimit
-                float unitySpeedLimit = physicsSettings != null ? physicsSettings.totalSpeedLimit : 3.0f;
-                Vector3 unityVelocity = rigidBody.velocity;
-                if (unityVelocity.magnitude > unitySpeedLimit)
+                if (physicsSettings != null && physicsSettings.physicsMode == PhysicsMode.UnityPhysics)
                 {
-                    unityVelocity = unityVelocity.normalized * unitySpeedLimit;
-                    rigidBody.velocity = unityVelocity;
-                    if (physicsSettings != null && physicsSettings.enableMigrationLogging)
-                        Debug.Log($"UnityPhysics mode velocity capped for {this.name} from {unityVelocity.magnitude} to {unitySpeedLimit}. Current Velocity: {rigidBody.velocity.magnitude}");
-                }
-                else if (physicsSettings != null && physicsSettings.enableMigrationLogging)
-                {
-                    Debug.Log($"UnityPhysics mode velocity not capped for {this.name}. Current Velocity: {unityVelocity.magnitude}, Limit: {unitySpeedLimit}");
+                    float unitySpeedLimit = physicsSettings != null ? physicsSettings.totalSpeedLimit : 3.0f;
+                    Vector3 unityVelocity = rigidBody.velocity;
+                    // Check if braking might be active (no input and velocity exists) to preserve legacy braking behavior
+                    bool possibleBrakingActive = Input.GetAxis("Horizontal") == 0 && Input.GetAxis("Vertical") == 0 && unityVelocity.magnitude > 0.01f;
+                    if (unityVelocity.magnitude > unitySpeedLimit && !possibleBrakingActive)
+                    {
+                        unityVelocity = unityVelocity.normalized * unitySpeedLimit;
+                        rigidBody.velocity = unityVelocity;
+                        if (physicsSettings != null && physicsSettings.enableMigrationLogging)
+                            Debug.Log($"UnityPhysics mode velocity capped for {this.name} from {unityVelocity.magnitude} to {unitySpeedLimit}. Current Velocity: {rigidBody.velocity.magnitude}");
+                    }
+                    else if (possibleBrakingActive && physicsSettings != null && physicsSettings.enableMigrationLogging)
+                    {
+                        Debug.Log($"UnityPhysics mode velocity not capped due to possible braking for {this.name}. Current Velocity: {unityVelocity.magnitude}, Limit: {unitySpeedLimit}");
+                    }
+                    else if (physicsSettings != null && physicsSettings.enableMigrationLogging)
+                    {
+                        Debug.Log($"UnityPhysics mode velocity not capped for {this.name}. Current Velocity: {unityVelocity.magnitude}, Limit: {unitySpeedLimit}");
+                    }
                 }
                 break;
+        }
+    }
+    
+    private void ApplyCustomPhysicsMovement()
+    {
+        if (physicsSettings == null)
+        {
+            Debug.LogWarning("PhysicsSettings not loaded in PhysicsObjectWrapper. Cannot apply custom physics movement.");
+            return;
+        }
+
+        float forwardForce = physicsSettings != null ? physicsSettings.forwardForceMagnitude : 8.0f;
+        float sidewaysForce = physicsSettings != null ? physicsSettings.sidewaysForceMagnitude : 8.0f;
+        float backwardForce = physicsSettings != null ? physicsSettings.backwardForceMagnitude : 3.0f;
+        float inputScale = physicsSettings != null ? physicsSettings.inputForceScale : 1.0f;
+
+        // Get camera component from PlayerCameraController
+        Camera playerCamera = FindObjectOfType<PlayerCameraController>()?.GetComponent<Camera>();
+        if (playerCamera == null)
+        {
+            Debug.LogWarning("PlayerCameraController or Camera component not found. Using absolute directions for CustomPhysics movement.");
+        }
+
+        // Calculate movement direction relative to camera if available
+        Vector3 forwardDirection = Vector3.forward;
+        Vector3 rightDirection = Vector3.right;
+        if (playerCamera != null)
+        {
+            forwardDirection = playerCamera.transform.forward;
+            rightDirection = playerCamera.transform.right;
+            forwardDirection.y = 0; // Keep movement horizontal
+            rightDirection.y = 0;
+            forwardDirection.Normalize();
+            rightDirection.Normalize();
+        }
+
+        // Get input from keyboard
+        float horizontalInput = Input.GetAxis("Horizontal");
+        float verticalInput = Input.GetAxis("Vertical");
+
+        // Determine force magnitude based on direction
+        float forwardComponent = verticalInput > 0 ? verticalInput * forwardForce : verticalInput * backwardForce;
+        float sidewaysComponent = horizontalInput * sidewaysForce;
+
+        // Apply input scale
+        forwardComponent *= inputScale;
+        sidewaysComponent *= inputScale;
+
+        // Calculate final force vector relative to camera orientation
+        Vector3 movementForce = (forwardDirection * forwardComponent) + (rightDirection * sidewaysComponent);
+
+        // Apply the force to the rigidbody
+        if (movementForce.magnitude > 0.01f)
+        {
+            rigidBody.AddForce(movementForce, ForceMode.Force);
+            Debug.Log($"PhysicsObjectWrapper.ApplyCustomPhysicsMovement: Applied movement force={movementForce.ToString("F3")}, ForwardDirection={forwardDirection.ToString("F3")}, RightDirection={rightDirection.ToString("F3")}, New Velocity={rigidBody.velocity.ToString("F3")}");
         }
     }
     

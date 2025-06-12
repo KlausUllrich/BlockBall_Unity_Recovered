@@ -43,6 +43,9 @@ public class PlayerCameraController : MonoBehaviour
     // Reference to PhysicsSettings for mode checking
     private PhysicsSettings physicsSettings;
 
+    // Reference to Rigidbody for efficiency
+    private Rigidbody rb;
+
     // -------------------------------------------------------------------------------------------
 	public enum MOVEMENT_TYPE
 	{
@@ -71,7 +74,32 @@ public class PlayerCameraController : MonoBehaviour
     // -------------------------------------------------------------------------------------------
     void Start () 
 	{
-		this.ObjectControlled.GetComponent<Rigidbody>().maxAngularVelocity = this.MaxAngularVelocity;
+        // Cache the Rigidbody reference for efficiency
+        rb = ObjectControlled.GetComponent<Rigidbody>();
+        
+        // Load PhysicsSettings from Resources if not assigned in Inspector
+        if (physicsSettings == null)
+        {
+            physicsSettings = Resources.Load<BlockBall.Settings.PhysicsSettings>("PhysicsSettings");
+            if (physicsSettings == null)
+            {
+                Debug.LogError("PhysicsSettings asset not found in Resources. Please create one.");
+            }
+            else
+            {
+                Debug.Log("PhysicsSettings loaded from Resources.");
+            }
+        }
+        
+        // Apply drag settings for UnityPhysics mode
+        if (physicsSettings != null && physicsSettings.physicsMode == BlockBall.Physics.PhysicsMode.UnityPhysics)
+        {
+            rb.drag = physicsSettings.linearDrag;
+            rb.angularDrag = physicsSettings.angularDrag;
+            Debug.Log($"PlayerCameraController.Start: Applied drag settings for UnityPhysics mode. LinearDrag={rb.drag}, AngularDrag={rb.angularDrag}");
+        }
+        
+        rb.maxAngularVelocity = this.MaxAngularVelocity;
     }
 
     // -------------------------------------------------------------------------------------------
@@ -166,6 +194,20 @@ public class PlayerCameraController : MonoBehaviour
         
         if (physicsSettings != null && physicsSettings.enableJumpBufferingLogging)
             Debug.Log($"PlayerCameraController.FixedUpdate: State for {this.name} - Grounded={isGrounded}, JumpTime={xJumpTime.TotalMilliseconds}ms, GroundContactTime={xGroundContactTime.TotalMilliseconds}ms");
+        
+        // Check braking conditions even without movement input, for UnityPhysics mode
+        if (physicsSettings != null && physicsSettings.physicsMode == PhysicsMode.UnityPhysics && this.ObjectControlled != null)
+        {
+            Rigidbody rb = this.ObjectControlled.GetComponent<Rigidbody>();
+            float breakFactor = physicsSettings != null ? physicsSettings.legacyBreakFactor : 10.0f;
+            Debug.Log($"PlayerCameraController.FixedUpdate: Checking braking condition. VelocityMagnitude={rb.velocity.magnitude}, PhysicsMode={physicsSettings.physicsMode.ToString()}");
+            if (rb.velocity.magnitude > 0.01f)
+            {
+                Vector3 vBrakingForce = -rb.velocity.normalized * breakFactor;
+                rb.AddForce(vBrakingForce, ForceMode.Force);
+                Debug.Log($"PlayerCameraController.FixedUpdate: Applying braking force. BreakFactor={breakFactor}, BrakingForce={vBrakingForce.ToString("F3")}, CurrentVelocity={rb.velocity.ToString("F3")}, Mass={rb.mass}, Drag={rb.drag}, AngularDrag={rb.angularDrag}, PhysicsMode={physicsSettings.physicsMode.ToString()}");
+            }
+        }
         
         // Movement logic remains unchanged
         if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
@@ -334,26 +376,32 @@ public class PlayerCameraController : MonoBehaviour
 	// -------------------------------------------------------------------------------------------
 	public void Move(MOVEMENT_TYPE eType)
 	{
+        Debug.Log($"PlayerCameraController.Move: Method called with Type={eType.ToString()}, PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Unknown")}");
+        if (physicsSettings == null || physicsSettings.physicsMode == PhysicsMode.CustomPhysics)
+        {
+            return;
+        }
         // Detailed logging for debugging physics interference (Task 0B.6)
         Debug.Log($"PlayerCameraController.Move: Object={this.name}, PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Unknown")}, Rigidbody.IsKinematic={this.ObjectControlled.GetComponent<Rigidbody>().isKinematic}, Rigidbody.UseGravity={this.ObjectControlled.GetComponent<Rigidbody>().useGravity}, Velocity={this.ObjectControlled.GetComponent<Rigidbody>().velocity.ToString("F3")}");
         
         if (this.ObjectControlled == null)
             return;
 
-        // Check physics mode to decide whether to apply forces
-        if (physicsSettings != null && physicsSettings.physicsMode == PhysicsMode.CustomPhysics)
-        {
-            Debug.Log($"PlayerCameraController.Move: Skipped applying movement forces due to PhysicsMode=CustomPhysics. Handled in PhysicsObjectWrapper.");
-            return; // Skip applying forces in CustomPhysics mode as it's handled in PhysicsObjectWrapper
-        }
-
         // Use input force magnitudes and scale from PhysicsSettings if available, otherwise use default values
         float forwardForce = physicsSettings != null ? physicsSettings.forwardForceMagnitude : 8.0f;
         float sidewaysForce = physicsSettings != null ? physicsSettings.sidewaysForceMagnitude : 8.0f;
         float backwardForce = physicsSettings != null ? physicsSettings.backwardForceMagnitude : 3.0f;
         float inputScale = physicsSettings != null ? physicsSettings.inputForceScale : 1.0f;
+        float speedFactor = physicsSettings != null ? physicsSettings.legacySpeedFactor : 1.0f;
         float breakFactor = physicsSettings != null ? physicsSettings.legacyBreakFactor : 10.0f;
 
+        // Apply speed factor to scale movement forces in UnityPhysics mode
+        forwardForce *= speedFactor;
+        sidewaysForce *= speedFactor;
+        backwardForce *= speedFactor;
+
+        Debug.Log($"PlayerCameraController.Move: Applying movement forces. SpeedFactor={speedFactor}, BreakFactor={breakFactor}, ForwardForce={forwardForce}, SidewaysForce={sidewaysForce}, BackwardForce={backwardForce}, InputScale={inputScale}");
+        
         Vector3 vForce = Vector3.zero;
 
         switch (eType)
@@ -379,6 +427,16 @@ public class PlayerCameraController : MonoBehaviour
         {
             this.ObjectControlled.GetComponent<Rigidbody>().AddForce(vForce, ForceMode.Force);
             Debug.Log($"PlayerCameraController.Move: Applied {eType.ToString()} Force={vForce.ToString("F3")}, New Velocity={this.ObjectControlled.GetComponent<Rigidbody>().velocity.ToString("F3")}, PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Unknown")}");
+        }
+
+        // Apply braking if no movement input is detected
+        Debug.Log($"PlayerCameraController.Move: Checking braking condition. vForceMagnitude={vForce.magnitude}, VelocityMagnitude={this.ObjectControlled.GetComponent<Rigidbody>().velocity.magnitude}, PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Unknown")}");
+        if (vForce.magnitude < 0.01f && this.ObjectControlled.GetComponent<Rigidbody>().velocity.magnitude > 0.01f)
+        {
+            Vector3 vBrakingForce = -this.ObjectControlled.GetComponent<Rigidbody>().velocity.normalized * breakFactor; 
+            this.ObjectControlled.GetComponent<Rigidbody>().AddForce(vBrakingForce, ForceMode.Force); 
+            Rigidbody rb = this.ObjectControlled.GetComponent<Rigidbody>();
+            Debug.Log($"PlayerCameraController.Move: Applying braking force. BreakFactor={breakFactor}, BrakingForce={vBrakingForce.ToString("F3")}, CurrentVelocity={rb.velocity.ToString("F3")}, Mass={rb.mass}, Drag={rb.drag}, AngularDrag={rb.angularDrag}, PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Unknown")}");
         }
     }
 
