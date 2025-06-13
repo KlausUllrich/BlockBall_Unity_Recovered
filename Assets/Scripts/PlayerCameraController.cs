@@ -387,38 +387,51 @@ public class PlayerCameraController : MonoBehaviour
         if (this.ObjectControlled == null)
             return;
 
-        // Use input force magnitudes and scale from PhysicsSettings if available, otherwise use default values
-        float forwardForce = physicsSettings != null ? physicsSettings.forwardForceMagnitude : 8.0f;
-        float sidewaysForce = physicsSettings != null ? physicsSettings.sidewaysForceMagnitude : 8.0f;
-        float backwardForce = physicsSettings != null ? physicsSettings.backwardForceMagnitude : 3.0f;
-        float inputScale = physicsSettings != null ? physicsSettings.inputForceScale : 1.0f;
-        float speedFactor = physicsSettings != null ? physicsSettings.legacySpeedFactor : 1.0f;
-        float breakFactor = physicsSettings != null ? physicsSettings.legacyBreakFactor : 10.0f;
+        // Calculate the force to apply based on input and mode-specific parameters
+        float forceMagnitude = 5.0f; // Default for original behavior
+        if (physicsSettings != null)
+        {
+            if (physicsSettings.physicsMode == PhysicsMode.UnityPhysics)
+            {
+                forceMagnitude *= physicsSettings.legacySpeedFactor * physicsSettings.inputForceScale;
+            }
+            else
+            {
+                forceMagnitude = physicsSettings.inputForceScale * GetDirectionalForceMagnitude(eType);
+            }
+        }
+        else
+        {
+            forceMagnitude *= SpeedFactor;
+        }
 
         // Apply speed factor to scale movement forces in UnityPhysics mode
-        forwardForce *= speedFactor;
-        sidewaysForce *= speedFactor;
-        backwardForce *= speedFactor;
-
-        Debug.Log($"PlayerCameraController.Move: Applying movement forces. SpeedFactor={speedFactor}, BreakFactor={breakFactor}, ForwardForce={forwardForce}, SidewaysForce={sidewaysForce}, BackwardForce={backwardForce}, InputScale={inputScale}");
-        
         Vector3 vForce = Vector3.zero;
 
         switch (eType)
         {
             case MOVEMENT_TYPE.FORWARD:
-                vForce = this.ObjectControlled.ForwardDirection * forwardForce * inputScale;
+                vForce = this.ObjectControlled.ForwardDirection * forceMagnitude;
                 break;
             case MOVEMENT_TYPE.BACKWARD:
-                vForce = this.ObjectControlled.ForwardDirection * -backwardForce * inputScale;
+                vForce = this.ObjectControlled.ForwardDirection * -forceMagnitude;
                 break;
             case MOVEMENT_TYPE.RIGHT:
-                vForce = this.ObjectControlled.RightDirection * sidewaysForce * inputScale;
+                vForce = this.ObjectControlled.RightDirection * forceMagnitude;
                 break;
             case MOVEMENT_TYPE.LEFT:
-                vForce = this.ObjectControlled.RightDirection * -sidewaysForce * inputScale;
+                vForce = this.ObjectControlled.RightDirection * -forceMagnitude;
                 break;
             case MOVEMENT_TYPE.BREAK:
+                float breakFactor = 10.0f; // Default from original code
+                if (physicsSettings != null && physicsSettings.physicsMode == PhysicsMode.UnityPhysics)
+                {
+                    breakFactor = physicsSettings.legacyBreakFactor;
+                }
+                else if (physicsSettings == null)
+                {
+                    breakFactor = BreakFactor;
+                }
                 vForce = this.ObjectControlled.GetComponent<Rigidbody>().velocity * -breakFactor;
                 break;
         }
@@ -433,10 +446,36 @@ public class PlayerCameraController : MonoBehaviour
         Debug.Log($"PlayerCameraController.Move: Checking braking condition. vForceMagnitude={vForce.magnitude}, VelocityMagnitude={this.ObjectControlled.GetComponent<Rigidbody>().velocity.magnitude}, PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Unknown")}");
         if (vForce.magnitude < 0.01f && this.ObjectControlled.GetComponent<Rigidbody>().velocity.magnitude > 0.01f)
         {
+            float breakFactor = 10.0f; // Default from original code
+            if (physicsSettings != null && physicsSettings.physicsMode == PhysicsMode.UnityPhysics)
+            {
+                breakFactor = physicsSettings.legacyBreakFactor;
+            }
+            else if (physicsSettings == null)
+            {
+                breakFactor = BreakFactor;
+            }
             Vector3 vBrakingForce = -this.ObjectControlled.GetComponent<Rigidbody>().velocity.normalized * breakFactor; 
             this.ObjectControlled.GetComponent<Rigidbody>().AddForce(vBrakingForce, ForceMode.Force); 
             Rigidbody rb = this.ObjectControlled.GetComponent<Rigidbody>();
             Debug.Log($"PlayerCameraController.Move: Applying braking force. BreakFactor={breakFactor}, BrakingForce={vBrakingForce.ToString("F3")}, CurrentVelocity={rb.velocity.ToString("F3")}, Mass={rb.mass}, Drag={rb.drag}, AngularDrag={rb.angularDrag}, PhysicsMode={(physicsSettings != null ? physicsSettings.physicsMode.ToString() : "Unknown")}");
+        }
+    }
+
+    // -------------------------------------------------------------------------------------------
+    private float GetDirectionalForceMagnitude(MOVEMENT_TYPE movementType)
+    {
+        switch (movementType)
+        {
+            case MOVEMENT_TYPE.FORWARD:
+                return physicsSettings.forwardForceMagnitude;
+            case MOVEMENT_TYPE.BACKWARD:
+                return physicsSettings.backwardForceMagnitude;
+            case MOVEMENT_TYPE.RIGHT:
+            case MOVEMENT_TYPE.LEFT:
+                return physicsSettings.sidewaysForceMagnitude;
+            default:
+                return 0.0f;
         }
     }
 

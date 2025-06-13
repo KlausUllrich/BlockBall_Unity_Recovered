@@ -178,6 +178,36 @@ public class PhysicsObjectWrapper : MonoBehaviour, IPhysicsObject
                 // Implement basic movement forces in CustomPhysics mode
                 ApplyCustomPhysicsMovement();
                 
+                // Add braking logic for CustomPhysics mode when no movement input is detected
+                if (playerScript != null && physicsSettings != null)
+                {
+                    // Check if the object is grounded
+                    bool isGrounded = HasGroundContact();
+                    // Assuming no movement input if velocity is low
+                    Vector3 currentVelocity = rigidBody.velocity;
+                    if (isGrounded && currentVelocity.magnitude < 1.0f) // Keep threshold for immediate braking
+                    {
+                        float breakFactor = physicsSettings != null ? physicsSettings.customBreakFactor : 10.0f;
+                        // Use a braking force to slow down gradually, reduce impact at very low speeds
+                        float forceMultiplier = currentVelocity.magnitude < 0.3f ? 0.1f : 0.8f; // Lower force when velocity is very low
+                        Vector3 brakingForce = -currentVelocity.normalized * breakFactor * rigidBody.mass * forceMultiplier;
+                        rigidBody.AddForce(brakingForce, ForceMode.Force);
+                        // Dampen angular velocity to stop spinning more effectively
+                        Vector3 currentAngularVelocity = rigidBody.angularVelocity;
+                        Vector3 reducedAngularVelocity = currentAngularVelocity * 0.7f; // Increase damping to 30% reduction per frame to stop spinning faster
+                        rigidBody.angularVelocity = reducedAngularVelocity;
+
+                    }
+                    else if (isGrounded)
+                    {
+                        Debug.Log($"CustomPhysics mode no braking needed for {this.name}. Velocity: {currentVelocity.magnitude} above threshold (1.0f).");
+                    }
+                    else
+                    {
+                        Debug.Log($"CustomPhysics mode no braking applied for {this.name}. Object not grounded. Velocity: {currentVelocity.magnitude}");
+                    }
+                }
+                
                 if (customVelocity.magnitude > customSpeedLimit)
                 {
                     customVelocity = customVelocity.normalized * customSpeedLimit;
@@ -192,11 +222,31 @@ public class PhysicsObjectWrapper : MonoBehaviour, IPhysicsObject
                 break;
 
             case PhysicsMode.Hybrid:
-                // Hybrid mode: Apply custom gravity but use Unity physics for other forces
-                float hybridLimit = physicsSettings != null ? physicsSettings.hybridSpeedLimit : 3.0f;
+                // Hybrid mode: Apply custom gravity and braking logic
+                float hybridLimit = physicsSettings != null ? physicsSettings.hybridSpeedLimit : 5.0f;
                 // Always apply custom gravity in Hybrid mode
                 Vector3 gravityForce = Physics.gravity * rigidBody.mass;
                 rigidBody.AddForce(gravityForce, ForceMode.Force);
+                
+                // Add braking logic for Hybrid mode when no movement input is detected
+                if (playerScript != null && physicsSettings != null && physicsSettings.enableMigrationLogging)
+                {
+                    // Check if the object is grounded
+                    bool isGrounded = HasGroundContact();
+                    // Assuming no movement input if velocity is low or based on Player script state
+                    Vector3 currentVelocity = rigidBody.velocity;
+                    if (isGrounded && currentVelocity.magnitude < 0.5f) // Threshold for braking
+                    {
+                        float breakFactor = physicsSettings != null ? physicsSettings.hybridBreakFactor : 10.0f;
+                        Vector3 brakingForce = -currentVelocity.normalized * breakFactor * rigidBody.mass;
+                        rigidBody.AddForce(brakingForce, ForceMode.Force);
+                        Debug.Log($"Hybrid mode braking applied for {this.name}. Velocity: {currentVelocity.magnitude}, Braking Force: {brakingForce.magnitude}");
+                    }
+                    else if (isGrounded)
+                    {
+                        Debug.Log($"Hybrid mode no braking needed for {this.name}. Velocity: {currentVelocity.magnitude} above threshold.");
+                    }
+                }
                 
                 Vector3 hybridVelocity = rigidBody.velocity;
                 if (hybridVelocity.magnitude > hybridLimit)
@@ -242,57 +292,46 @@ public class PhysicsObjectWrapper : MonoBehaviour, IPhysicsObject
     
     private void ApplyCustomPhysicsMovement()
     {
-        if (physicsSettings == null)
+        // Basic movement force application for CustomPhysics mode
+        // TODO: Replace with proper input handling system
+        Vector3 movementForce = Vector3.zero;
+        float forceMagnitude = physicsSettings != null ? physicsSettings.inputForceScale : 1.0f;
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null)
         {
-            Debug.LogWarning("PhysicsSettings not loaded in PhysicsObjectWrapper. Cannot apply custom physics movement.");
+            Debug.LogWarning("No main camera found for camera-relative movement in CustomPhysics mode.");
             return;
         }
+        Vector3 cameraForward = mainCamera.transform.forward;
+        Vector3 cameraRight = mainCamera.transform.right;
+        // Project camera directions onto the horizontal plane (assuming gravity is down)
+        cameraForward.y = 0;
+        cameraRight.y = 0;
+        cameraForward.Normalize();
+        cameraRight.Normalize();
 
-        float forwardForce = physicsSettings != null ? physicsSettings.forwardForceMagnitude : 8.0f;
-        float sidewaysForce = physicsSettings != null ? physicsSettings.sidewaysForceMagnitude : 8.0f;
-        float backwardForce = physicsSettings != null ? physicsSettings.backwardForceMagnitude : 3.0f;
-        float inputScale = physicsSettings != null ? physicsSettings.inputForceScale : 1.0f;
-
-        // Get camera component from PlayerCameraController
-        Camera playerCamera = FindObjectOfType<PlayerCameraController>()?.GetComponent<Camera>();
-        if (playerCamera == null)
+        if (Input.GetKey(KeyCode.W))
         {
-            Debug.LogWarning("PlayerCameraController or Camera component not found. Using absolute directions for CustomPhysics movement.");
+            movementForce += cameraForward * forceMagnitude * (physicsSettings != null ? physicsSettings.forwardForceMagnitude : 8.0f);
         }
-
-        // Calculate movement direction relative to camera if available
-        Vector3 forwardDirection = Vector3.forward;
-        Vector3 rightDirection = Vector3.right;
-        if (playerCamera != null)
+        if (Input.GetKey(KeyCode.S))
         {
-            forwardDirection = playerCamera.transform.forward;
-            rightDirection = playerCamera.transform.right;
-            forwardDirection.y = 0; // Keep movement horizontal
-            rightDirection.y = 0;
-            forwardDirection.Normalize();
-            rightDirection.Normalize();
+            movementForce -= cameraForward * forceMagnitude * (physicsSettings != null ? physicsSettings.backwardForceMagnitude : 3.0f);
         }
-
-        // Get input from keyboard
-        float horizontalInput = Input.GetAxis("Horizontal");
-        float verticalInput = Input.GetAxis("Vertical");
-
-        // Determine force magnitude based on direction
-        float forwardComponent = verticalInput > 0 ? verticalInput * forwardForce : verticalInput * backwardForce;
-        float sidewaysComponent = horizontalInput * sidewaysForce;
-
-        // Apply input scale
-        forwardComponent *= inputScale;
-        sidewaysComponent *= inputScale;
-
-        // Calculate final force vector relative to camera orientation
-        Vector3 movementForce = (forwardDirection * forwardComponent) + (rightDirection * sidewaysComponent);
-
-        // Apply the force to the rigidbody
-        if (movementForce.magnitude > 0.01f)
+        if (Input.GetKey(KeyCode.D))
+        {
+            movementForce += cameraRight * forceMagnitude * (physicsSettings != null ? physicsSettings.sidewaysForceMagnitude : 8.0f);
+        }
+        if (Input.GetKey(KeyCode.A))
+        {
+            movementForce -= cameraRight * forceMagnitude * (physicsSettings != null ? physicsSettings.sidewaysForceMagnitude : 8.0f);
+        }
+        
+        if (movementForce.magnitude > 0)
         {
             rigidBody.AddForce(movementForce, ForceMode.Force);
-            Debug.Log($"PhysicsObjectWrapper.ApplyCustomPhysicsMovement: Applied movement force={movementForce.ToString("F3")}, ForwardDirection={forwardDirection.ToString("F3")}, RightDirection={rightDirection.ToString("F3")}, New Velocity={rigidBody.velocity.ToString("F3")}");
+            if (physicsSettings != null && physicsSettings.enableMigrationLogging)
+                Debug.Log($"CustomPhysics mode applied movement force for {this.name}: {movementForce.magnitude}");
         }
     }
     

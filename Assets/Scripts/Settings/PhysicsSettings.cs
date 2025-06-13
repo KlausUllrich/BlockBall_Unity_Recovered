@@ -11,6 +11,10 @@ namespace BlockBall.Settings
         [Tooltip("Select the active physics mode: UnityPhysics uses built-in Unity physics, CustomPhysics uses a fully custom implementation, Hybrid combines elements of both for transition.")]
         public BlockBall.Physics.PhysicsMode physicsMode = BlockBall.Physics.PhysicsMode.UnityPhysics;
         
+        // Gravity value for custom physics mode
+        [Tooltip("Gravity value for custom physics mode")]
+        public float gravity = -9.81f;
+        
         [Header("Logging and Debugging")]
         [Tooltip("Enable detailed logging for physics migration to debug mode-specific behaviors, velocity capping, and force application. Useful for troubleshooting but may impact performance with excessive log output.")]
         public bool enableMigrationLogging = false;
@@ -57,10 +61,18 @@ namespace BlockBall.Settings
         [Range(3.0f, 10.0f)]
         public float hybridSpeedLimit = 3.0f; // Same as totalSpeedLimit by default
         
+        [Tooltip("Breaking factor to slow down movement in Hybrid mode. Higher values result in faster deceleration when braking. Range from 5 to 20.")]
+        [Range(5f, 20f)]
+        public float hybridBreakFactor = 10.0f;
+        
         [Header("Custom Physics Mode Settings")]
         [Tooltip("Maximum speed limit (in blocks per second, 1 block = 1 Unity unit) for objects in CustomPhysics mode. Caps velocity in the fully custom implementation for predictable behavior. Range from 0.5 to 5.0.")]
         [Range(0.5f, 5.0f)]
         public float physicsSpeedLimit = 2.0f;
+        
+        [Tooltip("Breaking factor to slow down movement in CustomPhysics mode. Higher values result in faster deceleration when braking. Range from 5 to 20.")]
+        [Range(5f, 20f)]
+        public float customBreakFactor = 10.0f;
         
         [Tooltip("Number of substeps for deterministic physics calculations in CustomPhysics mode. Higher values improve precision but impact performance. Range from 1 to 10.")]
         [Range(1, 10)]
@@ -109,17 +121,77 @@ namespace BlockBall.Settings
         [Range(30f, 120f)]
         public int physicsUpdateHz = 50;
         
+        [Header("Advanced Physics Settings (Future CustomPhysics)")]
+        [Tooltip("Fixed timestep for custom physics simulation in seconds (50Hz = 0.02s)")]
+        [Range(0.01f, 0.05f)]
+        public float customPhysicsTimestep = 0.02f;
+        
+        [Tooltip("Maximum substeps to prevent spiral of death during frame drops")]
+        [Range(1, 16)]
+        public int maxPhysicsSubsteps = 8;
+        
+        [Tooltip("Enable zero-allocation mode using object pooling for better performance")]
+        public bool useObjectPooling = true;
+        
+        [Tooltip("Enable energy conservation monitoring and warnings")]
+        public bool enableEnergyConservation = true;
+        
+        [Header("Advanced Ball Physics Parameters")]
+        [Tooltip("Maximum speed achievable through player input (blocks per second)")]
+        [Range(1f, 10f)]
+        public float maxInputSpeed = 6f;
+        
+        [Tooltip("Maximum speed from physics forces like gravity (blocks per second)")]
+        [Range(1f, 12f)]
+        public float maxPhysicsSpeed = 7f;
+        
+        [Tooltip("Absolute maximum speed limit (blocks per second)")]
+        [Range(1f, 15f)]
+        public float maxTotalSpeed = 8f;
+        
+        [Tooltip("Jump height in Unity units (6 Bixels = 0.75 units)")]
+        [Range(0.5f, 2f)]
+        public float jumpHeight = 0.75f;
+        
+        [Tooltip("Time window to buffer jump input when not grounded")]
+        [Range(0.05f, 0.5f)]
+        public float jumpBufferTime = 0.1f;
+        
+        [Tooltip("Time window to allow jumping after leaving ground (coyote time)")]
+        [Range(0.05f, 0.5f)]
+        public float coyoteTime = 0.15f;
+        
+        [Tooltip("Friction when rolling on surfaces")]
+        [Range(0.1f, 2f)]
+        public float rollingFriction = 0.8f;
+        
+        [Tooltip("Friction when sliding on steep surfaces")]
+        [Range(0.1f, 2f)]
+        public float slidingFriction = 0.3f;
+        
+        [Tooltip("Air resistance multiplier")]
+        [Range(0.8f, 1f)]
+        public float airDrag = 0.95f;
+        
+        [Tooltip("Angle threshold for determining if surface is walkable (degrees)")]
+        [Range(30f, 60f)]
+        public float slopeLimit = 45f;
+        
+        [Tooltip("Distance to check for ground contact")]
+        [Range(0.5f, 0.7f)]
+        public float groundCheckDistance = 0.51f;
+        
         // Conversion utility for physics parameter validation
-        public float ConvertJumpForceToHeight()
+        public float GetTargetJumpHeight()
         {
             // Empirical conversion formula (to be calibrated)
-            float gravity = -9.81f;
             return (legacyJumpForce * legacyJumpForce) / (2 * gravity);
         }
         
         public void ValidateParameters()
         {
-            if (!true) return;
+            // Commented out unreachable code due to 'if (!true)'
+            // if (!true) return;
         }
     }
 }

@@ -32,6 +32,7 @@
 - Propose obsolete files for removal at session end
 - Ask user how to document changes
 
-Read the complete /Status/Project_Overview.md file
-Read the complete /Status/physics_architecture.md file
+Read the complete docs/Status/Project_Overview.md file
+Read the complete docs/Status/physics_architecture.md file
 Keep both files updated
+Determin the tasks for this session by reading the docs/implementation/phase0_migration_strategy/ folder

@@ -1440,6 +1440,18 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5400000, guid: 2ebf2a1956b2a2d4aa9085d1bde9a736, type: 3}
+      propertyPath: m_Drag
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5400000, guid: 2ebf2a1956b2a2d4aa9085d1bde9a736, type: 3}
+      propertyPath: m_AngularDrag
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5400000, guid: 2ebf2a1956b2a2d4aa9085d1bde9a736, type: 3}
+      propertyPath: m_Interpolate
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5400000, guid: 2ebf2a1956b2a2d4aa9085d1bde9a736, type: 3}
       propertyPath: m_IsKinematic
       value: 0
       objectReference: {fileID: 0}
@@ -1459,6 +1471,10 @@ PrefabInstance:
       propertyPath: pDeadZoneCollider
       value: 
       objectReference: {fileID: 1515620888}
+    - target: {fileID: 13500000, guid: 2ebf2a1956b2a2d4aa9085d1bde9a736, type: 3}
+      propertyPath: m_Radius
+      value: 0.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1467,6 +1483,14 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1097624002}
+    - targetCorrespondingSourceObject: {fileID: 100000, guid: 2ebf2a1956b2a2d4aa9085d1bde9a736,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1097624008}
+    - targetCorrespondingSourceObject: {fileID: 100000, guid: 2ebf2a1956b2a2d4aa9085d1bde9a736,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1097624007}
   m_SourcePrefab: {fileID: 100100000, guid: 2ebf2a1956b2a2d4aa9085d1bde9a736, type: 3}
 --- !u!1 &687994483 stripped
 GameObject:
@@ -1984,6 +2008,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f83c8d3cb89052429f1859b44bea00b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1097624007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 687994483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6cdcac3b4ad5394408cd3c50d031b1ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FixedTimestep: 0.02
+  MaxSubsteps: 8
+  useObjectPooling: 1
+  enableProfiling: 1
+  showDebugInfo: 0
+--- !u!114 &1097624008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 687994483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9662a380e4e0ed4c95e253ff9444e02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxInputSpeed: 5
+  maxPhysicsSpeed: 10
+  maxTotalSpeed: 15
+  jumpHeight: 2
+  jumpBufferTime: 0.2
+  coyoteTime: 0.1
+  rollingFriction: 1
+  slidingFriction: 2
+  airDrag: 0.1
+  slopeLimit: 45
+  groundCheckDistance: 0.1
+  enableDebugVisualization: 1
+  enableEnergyConservation: 0
 --- !u!1 &1100098562
 GameObject:
   m_ObjectHideFlags: 0

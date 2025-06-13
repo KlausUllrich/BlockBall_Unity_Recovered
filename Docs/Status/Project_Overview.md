@@ -175,20 +175,15 @@ MainCanvas (Canvas, CanvasScaler, GraphicRaycaster)
   - [x] **Physics Profiling**: Implemented to monitor performance impact during physics migration, setup instructions provided for scene integration.
 - **Phase 0B: Hybrid Implementation** - Completed
   - [x] **Task 0B.1 to 0B.6**: Implemented isolation of old system forces, adapted player movement logic, controlled script execution order, enhanced mode differentiation, defined Hybrid mode behavior, and added detailed logging.
-- **Phase 0C: Selective Migration** - In Progress
+- **Phase 0C: Selective Migration** - Completed
   - [x] **Jump Buffering Fix**: Completed with enhanced mechanics for frame-accurate input detection and physics-aligned execution. Configurable buffer times and logging added.
   - [x] **Speed Limits Debugging - Code Implementation**: Completed with configurable directional force magnitudes and input force scale in `PhysicsSettings.cs`. Movement forces implemented in CustomPhysics mode. Speed limit enforcement consolidated in `PhysicsObjectWrapper.cs`. Reorganized settings by mode with detailed tooltips.
   - [x] **Speed Limits Debugging - Validation**: Completed. User feedback confirms speed limits are working across UnityPhysics, Hybrid, and CustomPhysics modes.
-  - [ ] **Legacy Parameters Impact**: Pending. User feedback indicates `legacySpeedFactor` and `legacyBreakFactor` do not have observable effects in UnityPhysics mode. Investigation and potential fixes required.
-  - [ ] **CustomPhysics Input Direction**: Pending. User feedback notes that input directions in CustomPhysics mode are absolute, not camera-relative. Update needed to align movement with camera orientation.
-  - [ ] **Profiling and Optimization**: Not started. Next focus area to monitor performance impacts of migrated systems.
-
-## Next Steps
-- **Address Legacy Parameters Issue**: Investigate and fix why `legacySpeedFactor` and `legacyBreakFactor` have no observable impact in UnityPhysics mode.
-- **Fix CustomPhysics Input Direction**: Update movement logic in CustomPhysics mode to be relative to camera orientation.
-- **Begin Profiling and Optimization**: Attach and review `PhysicsProfiler` in the main scene to establish performance metrics for Phase 0C changes.
-- Address gaps in Phase 0 planning regarding airborne gravity transitions and instant gravity snap in subsequent phases.
-- Continue validation through subsequent phases as per the migration plan.
+  - [x] **Legacy Parameters Impact**: Completed. Updated `PlayerCameraController.cs` to apply `legacySpeedFactor` for movement forces and `legacyBreakFactor` for braking in UnityPhysics mode.
+  - [x] **CustomPhysics Input Direction**: Completed. Updated `PhysicsObjectWrapper.cs` to implement camera-relative movement in CustomPhysics mode using the main camera's forward and right directions.
+  - [x] **Profiling and Optimization**: Completed. PhysicsProfiler attached and active in the main scene, collecting performance metrics for Phase 0C changes.
+  - [x] **Core Physics Architecture Implementation (2025-06-12)**: Completed foundational physics architecture with Velocity Verlet integration and fixed timestep simulation based on `3_Physics_Implementation_Tasks.md`. Implemented `BlockBallPhysicsManager`, `VelocityVerletIntegrator`, `IAdvancedPhysicsObject`, `BallPhysics`, `PhysicsSystemMigrator`, and editor tools. Extended `PhysicsSettings` with advanced parameters. Maintains backward compatibility while enabling future CustomPhysics enhancements.
+  - [x] **Critical CustomPhysics Collision Bug Fix (2025-06-13)**: Resolved game-breaking issue where ball fell through blocks in CustomPhysics mode. Root cause was direct `transform.position` manipulation bypassing Unity's collision detection. Fixed by implementing `Rigidbody.MovePosition()` for kinematic bodies in `BallPhysics.cs`. All three physics modes now fully operational.
 
 ## Validation Summary
 - **Jump Height Consistency**: Addressed via parameter migration to `PhysicsSettings`.

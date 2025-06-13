@@ -122,7 +122,7 @@ public class PhysicObjekt : GrafikObjekt
     }
 
     //-----------------------------------------------------------------------------------------------------------------
-    protected virtual void Awake()
+    protected override void Awake()
     {
         rb = GetComponent<Rigidbody>();
         // Runtime loading of PhysicsSettings (Task 0B.1)
@@ -179,13 +179,12 @@ public class PhysicObjekt : GrafikObjekt
             // Apply custom gravity forces if in CustomPhysics mode
             if (!rb.isKinematic && !rb.useGravity)
             {
-                float gravityValue = -9.81f;
-                float gravityMultiplier = 2.0f; // Stronger gravity for custom physics
-                Vector3 gravityForce = Vector3.up * gravityValue * gravityMultiplier * rb.mass;
+                float gravityValue = physicsSettings.gravity;    
+                Vector3 gravityForce = Vector3.up * gravityValue * rb.mass;
                 rb.AddForce(gravityForce, ForceMode.Force);
                 if (physicsSettings != null && physicsSettings.enableMigrationLogging)
                 {
-                    Debug.Log($"PhysicObject.FixedUpdate: Applied custom gravity force={gravityForce.ToString("F3")} to {this.name} with multiplier={gravityMultiplier}");
+                    Debug.Log($"PhysicObject.FixedUpdate: Applied custom gravity force={gravityForce.ToString("F3")} to {this.name}");
                 }
             }
         }
@@ -351,4 +350,13 @@ public class PhysicObjekt : GrafikObjekt
 #endif
 
     //-----------------------------------------------------------------------------------------------------------------
+    private bool HasField(object obj, string fieldName)
+    {
+        return obj.GetType().GetField(fieldName) != null;
+    }
+
+    private T GetFieldValue<T>(object obj, string fieldName)
+    {
+        return (T)obj.GetType().GetField(fieldName).GetValue(obj);
+    }
 }

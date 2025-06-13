@@ -8,13 +8,18 @@ BlockBall is a Unity-based game project focused on physics-driven gameplay. The 
 ### Phase 0: Migration Setup and Compatibility
 - **Phase 0A: Setup and Initial Migration** - Completed. Basic framework for physics mode switching between Unity Physics and Custom Physics.
 - **Phase 0B: Parameter Mapping and Behavioral Parity** - Completed. Ensured that legacy parameters like jump force and gravity are correctly mapped to new systems with observable behavioral distinctions.
-- **Phase 0C: Selective System Migration** - In Progress. Focus on specific mechanics:
-  - **Jump Buffering Fix** - **Completed**. Resolved issues with jump buffering not functioning as expected. Jump input detection is now handled in `Update()` for frame-accurate input capture, while buffering logic and jump execution are in `FixedUpdate()` to align with physics updates. Added configurable buffer times and detailed logging toggled via `PhysicsSettings`.
-  - **Speed Limits Debugging** - **In Progress**. Added distinct `forwardForceMagnitude`, `sidewaysForceMagnitude`, and `backwardForceMagnitude` in `PhysicsSettings.cs` to capture original hardcoded directional limits. Renamed `inputForceMagnitude` to `inputForceScale` (1.0 = original behavior). Implemented movement in CustomPhysics mode and consolidated speed limit enforcement to `PhysicsObjectWrapper.cs`. Reorganized `PhysicsSettings.cs` by mode (Unity, Hybrid, Custom) with detailed tooltips. Fixed compiler errors related to removed properties (`legacyGravity`, `useUnityGravity`) with hardcoded values or simplified logic.
-  - Profiling and optimization tasks are next in line.
+- **Phase 0C: Core Physics Architecture** - Completed. Full custom physics implementation with modular architecture:
+  - **Jump Buffering** - Completed. Frame-accurate input capture with configurable buffer times and detailed logging.
+  - **Speed Limits** - Completed. Distinct directional force magnitudes with consolidated speed limit enforcement.
+  - **Modular Physics** - Completed. BallPhysics refactored into 6 specialized components for maintainability.
+  - **Core Systems** - Completed. 50Hz fixed timestep physics manager, Velocity Verlet integration, advanced state management.
+  - **Editor Integration** - Completed. Full runtime parameter configuration via AdvancedPhysicsSetup.
 
-### Phase 1: Advanced Custom Physics
-- Implementation of advanced custom physics features, potentially replacing Unity physics core.
+### Phase 1: Testing and Validation
+- **Current Focus**: Gameplay testing and performance validation of all physics modes
+- Unity editor testing for compilation and functionality
+- Physics behavior testing across all three modes (UnityPhysics, Hybrid, CustomPhysics)
+- Performance profiling and optimization validation
 
 ## Key Features and Updates
 - **Physics Mode Switching**: Three modes - UnityPhysics (default), CustomPhysics, and Hybrid - controlled via `PhysicsSettings` ScriptableObject.
@@ -27,8 +32,8 @@ BlockBall is a Unity-based game project focused on physics-driven gameplay. The 
 
 ## Current Focus
 - Stabilize jump buffering across Unity and Hybrid physics modes (Completed).
-- Debug and resolve issues with speed limit enforcement in physics modes, ensuring `physicsSpeedLimit` works in CustomPhysics mode and `totalSpeedLimit` is fully relevant (In Progress).
-- Continue with profiling and optimization for Phase 0C.
+- Debug and resolve issues with speed limit enforcement in physics modes, ensuring `physicsSpeedLimit` works in CustomPhysics mode and `totalSpeedLimit` is fully relevant (Completed).
+- Continue with profiling and optimization for Phase 0C (Completed).
 
 ## How to Contribute
 - Review `PhysicsSettings` asset for tuning physics parameters.

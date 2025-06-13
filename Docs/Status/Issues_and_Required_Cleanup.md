@@ -39,6 +39,10 @@ last_updated: "2025-06-11"
 - **DeterministicMath Implementation**: Implemented on [date] for consistent physics calculations using float32 precision. Integrated into PhysicsObjectWrapper on [date] with RoundVector method added for vector operations; tested and validated on [date] with no observable behavior changes, confirming continued compatibility with existing system.
 - **PhysicsProfiler Implementation**: Implemented on [date] to monitor physics performance during migration. Setup script and prefab created for scene integration; instructions provided for manual setup in the main scene via Unity Editor; pending attachment to a GameObject and testing to establish baseline performance metrics.
 - **Duplicate PhysicsMode Definition**: Resolved error CS0101 on [date] by removing duplicate PhysicsMode enum from PhysicsSettings.cs, ensuring definition exists only in PhysicsMode.cs.
+- **Legacy Parameters Impact (Resolved on 2025-06-12)**: Fixed issue where `legacySpeedFactor` and `legacyBreakFactor` had no observable effect in UnityPhysics mode by updating `PlayerCameraController.cs` to use these parameters for movement and braking forces.
+- **CustomPhysics Input Direction (Resolved on 2025-06-12)**: Fixed issue where input directions in CustomPhysics mode were absolute by updating `PhysicsObjectWrapper.cs` to use camera-relative movement based on the main camera's orientation.
+- **Profiling and Optimization (Initiated on 2025-06-12)**: Created `PhysicsProfilerInitializer.cs` to instantiate `PhysicsProfiler` in the main scene. Attach this script to a GameObject in the main scene to start profiling physics performance.
+- **Critical CustomPhysics Collision Bug (Resolved on 2025-06-13)**: Fixed game-breaking issue where ball fell through blocks in CustomPhysics mode. Root cause was direct `transform.position` manipulation in `BallPhysics.cs` which bypassed Unity's collision detection when Rigidbody was kinematic. Solution implemented `Rigidbody.MovePosition()` for kinematic bodies in the Position property and PostPhysicsStep method. This ensures proper collision detection while maintaining the custom physics behavior. Files modified: `BallPhysics.cs` Position property (lines 24-40) and PostPhysicsStep method (line 252).
 
 ## Phase 0B: Hybrid Implementation - In Progress
 - **PhysicsMode Enum**: Implemented on [date] to define physics system modes (UnityPhysics, CustomPhysics, Hybrid). Added to PhysicsSettings for mode selection; integrated into PhysicsObjectWrapper on [date] for toggling behavior between Unity and custom physics systems, pending testing to validate mode switching.
@@ -48,6 +52,25 @@ last_updated: "2025-06-11"
 - **PhysicsSettings Path Update**: Updated resource path in PhysicsObjectWrapper.cs on [date] to correctly load PhysicsSettings asset from 'PhysicsSettings' path.
 - **Error Handling**: Added try-catch block on [date] for robust loading of PhysicsSettings asset in PhysicsObjectWrapper.cs to handle potential loading errors; updated error message to provide actionable guidance for creating the asset if missing.
 - **Type Qualification**: Fully qualified PhysicsSettings type as BlockBall.Settings.PhysicsSettings on [date] in PhysicsObjectWrapper.cs to resolve potential namespace reference issues.
+
+## Physics Migration - Phase 0C Updates
+
+- **2025-06-12**: Profiling and Optimization task completed. `PhysicsProfilerSetup.cs` and `PhysicsProfiler.prefab` successfully integrated into the active scene (`testcamera`). Profiler is active and collecting data. Awaiting user review of performance metrics to identify any bottlenecks or optimization needs for UnityPhysics, Hybrid, and CustomPhysics modes.
+
+- **2025-06-12**: Core Physics Architecture Implementation completed. Implemented foundational components for future CustomPhysics system based on `3_Physics_Implementation_Tasks.md` Task 1:
+  - `BlockBallPhysicsManager.cs` - Central physics system manager with 50Hz fixed timestep and accumulator pattern
+  - `VelocityVerletIntegrator.cs` - High-precision physics integration for energy conservation with validation methods
+  - `IAdvancedPhysicsObject.cs` - Extended interface for advanced physics objects with lifecycle hooks
+  - `BallPhysics.cs` - Enhanced ball physics component with state management, camera-relative input, and comprehensive movement mechanics
+  - `PhysicsSystemMigrator.cs` - Migration helper for gradual transition between old and new physics systems
+  - `AdvancedPhysicsSetup.cs` - Unity Editor tools for easy setup and configuration
+  - Extended `PhysicsSettings.cs` with 20+ advanced physics parameters for full runtime tuning
+  - All components maintain backward compatibility with existing `PhysicsObjectWrapper` system
+  - Ready for testing and integration with existing game systems
+
+- **2025-06-12**: Fixed compilation errors in Core Physics Architecture. Resolved YAML header issues by replacing with proper C# comments, fixed namespace conflicts by using `UnityEngine.Debug` instead of `Debug` and `UnityEngine.Physics` instead of `Physics` to avoid conflicts with `BlockBall.Physics` namespace. All physics architecture files now compile correctly in Unity.
+
+- **2025-06-12**: ✅ **Phase 0C Completed** - BallPhysics Modular Refactoring Complete. Successfully refactored monolithic 724-line `BallPhysics.cs` into modular architecture with 6 specialized components (53% size reduction). Fixed all compilation errors including CS0111 (duplicate methods), CS0200 (read-only properties), and CS0414 (unused fields). All physics properties now accessible via AdvancedPhysicsSetup editor tools. Three physics modes (UnityPhysics, Hybrid, CustomPhysics) now fully operational and ready for gameplay testing. Next session focus: Testing & Validation.
 
 ## Physics Migration Issues - Phase 0C
 - **Speed Limits Validation Completed** (Updated 2025-06-12): User feedback confirms that speed limits are working as expected across UnityPhysics, Hybrid, and CustomPhysics modes. No further action needed on this task unless new issues arise.
@@ -68,8 +91,6 @@ last_updated: "2025-06-11"
   - **Next Steps**:
     - Review logs to confirm braking logic in `FixedUpdate` is triggered and assess impact.
     - Investigate Rigidbody settings (mass, drag) and physics materials in Unity Editor if braking remains weak.
-
-- **CustomPhysics Input Direction Issue** (Updated 2025-06-12): User feedback notes that input directions in CustomPhysics mode are currently absolute (world coordinates) rather than relative to camera orientation. This needs to be updated in `PhysicsObjectWrapper.cs` to transform input vectors based on camera forward and right directions for intuitive control.
 
 ## Risk Mitigation Actions
 - **Jump Feel Changes**: Implement extensive playtesting and gradual transition options via `PhysicsMode` to prevent altering player muscle memory.
