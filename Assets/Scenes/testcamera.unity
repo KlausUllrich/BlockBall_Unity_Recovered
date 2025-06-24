@@ -3392,7 +3392,7 @@ MonoBehaviour:
   SpeedFactor: 1
   BreakFactor: 5
   MaxAngularVelocity: 200
-  JumpForce: 1
+  JumpForce: 5
   MilisecondsBeforeGroundContractIsValidAsJump: 300
   CanOnlyConrolledIfGrounded: 0
   Distance: 10
