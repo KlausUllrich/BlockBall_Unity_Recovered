@@ -298,6 +298,10 @@ node_modules/
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
 
+# Track these files
+!Packages/manifest.json
+!Packages/packages-lock.json
+
 # MemoryCaptures can get excessive in size
 # They also could contain extremely sensitive data
 [Mm]emoryCaptures/
