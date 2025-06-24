@@ -12,18 +12,45 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fac0cd4703d37444b9c361b4d2666fb3, type: 3}
   m_Name: PhysicsSettings
   m_EditorClassIdentifier: 
-  physicsMode: 1
+  physicsMode: 2
+  gravity: -9.81
   enableMigrationLogging: 1
-  validateParameterConversion: 1
+  enableJumpBufferingLogging: 0
+  jumpInputBufferTime: 0.2
+  groundContactBufferTime: 0.2
   legacyJumpForce: 5
   legacySpeedFactor: 1
   legacyBreakFactor: 10
-  legacyGravity: -9.81
-  targetJumpHeight: 0.75
-  inputSpeedLimit: 6
-  physicsSpeedLimit: 6.5
   totalSpeedLimit: 7
+  linearDrag: 1
+  angularDrag: 2.5
+  hybridSpeedLimit: 3
+  hybridBreakFactor: 10
+  physicsSpeedLimit: 5
+  customBreakFactor: 10
+  deterministicSubsteps: 4
+  performanceFactor: 2
+  inputSpeedLimit: 6
+  inputForceScale: 1
+  forwardForceMagnitude: 8
+  sidewaysForceMagnitude: 8
+  backwardForceMagnitude: 5
   fixedPointScale: 1000000
   accumulationThreshold: 1000
   maxPhysicsUpdateMs: 2
-  physicsUpdateHz: 50
+  physicsUpdateHz: 100
+  customPhysicsTimestep: 0.02
+  maxPhysicsSubsteps: 8
+  useObjectPooling: 1
+  enableEnergyConservation: 1
+  maxInputSpeed: 6
+  maxPhysicsSpeed: 7
+  maxTotalSpeed: 10
+  jumpHeight: 0.75
+  jumpBufferTime: 0.1
+  coyoteTime: 0.15
+  rollingFriction: 0.8
+  slidingFriction: 0.3
+  airDrag: 0.95
+  slopeLimit: 45
+  groundCheckDistance: 0.5

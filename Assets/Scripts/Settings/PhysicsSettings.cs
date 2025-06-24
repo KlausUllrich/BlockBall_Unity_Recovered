@@ -139,35 +139,35 @@ namespace BlockBall.Settings
         [Header("Advanced Ball Physics Parameters")]
         [Tooltip("Maximum speed achievable through player input (blocks per second)")]
         [Range(1f, 10f)]
-        public float maxInputSpeed = 6f;
+        public float maxInputSpeed = 5f;
         
         [Tooltip("Maximum speed from physics forces like gravity (blocks per second)")]
-        [Range(1f, 12f)]
-        public float maxPhysicsSpeed = 7f;
+        [Range(5f, 15f)]
+        public float maxPhysicsSpeed = 10f;
         
         [Tooltip("Absolute maximum speed limit (blocks per second)")]
-        [Range(1f, 15f)]
-        public float maxTotalSpeed = 8f;
+        [Range(10f, 20f)]
+        public float maxTotalSpeed = 15f;
         
         [Tooltip("Jump height in Unity units (6 Bixels = 0.75 units)")]
         [Range(0.5f, 2f)]
         public float jumpHeight = 0.75f;
         
-        [Tooltip("Time window to buffer jump input when not grounded")]
-        [Range(0.05f, 0.5f)]
+        [Tooltip("Jump input buffer time in seconds")]
+        [Range(0.05f, 0.2f)]
         public float jumpBufferTime = 0.1f;
         
-        [Tooltip("Time window to allow jumping after leaving ground (coyote time)")]
-        [Range(0.05f, 0.5f)]
+        [Tooltip("Coyote time for jumping after leaving ground")]
+        [Range(0.1f, 0.3f)]
         public float coyoteTime = 0.15f;
         
         [Tooltip("Friction when rolling on surfaces")]
-        [Range(0.1f, 2f)]
-        public float rollingFriction = 0.8f;
+        [Range(0.1f, 1f)]
+        public float rollingFriction = 0.3f;
         
         [Tooltip("Friction when sliding on steep surfaces")]
-        [Range(0.1f, 2f)]
-        public float slidingFriction = 0.3f;
+        [Range(0.05f, 0.5f)]
+        public float slidingFriction = 0.1f;
         
         [Tooltip("Air resistance multiplier")]
         [Range(0.8f, 1f)]

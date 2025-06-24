@@ -38,18 +38,18 @@ MonoBehaviour:
   fixedPointScale: 1000000
   accumulationThreshold: 1000
   maxPhysicsUpdateMs: 2
-  physicsUpdateHz: 50
-  customPhysicsTimestep: 0.02
-  maxPhysicsSubsteps: 8
+  physicsUpdateHz: 120
+  customPhysicsTimestep: 0.01333
+  maxPhysicsSubsteps: 12
   useObjectPooling: 1
   enableEnergyConservation: 1
   maxInputSpeed: 6
   maxPhysicsSpeed: 7
-  maxTotalSpeed: 8
+  maxTotalSpeed: 10
   jumpHeight: 0.75
   jumpBufferTime: 0.1
   coyoteTime: 0.15
-  rollingFriction: 0.8
+  rollingFriction: 0.961
   slidingFriction: 0.3
   airDrag: 0.95
   slopeLimit: 45
