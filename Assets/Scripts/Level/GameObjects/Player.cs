@@ -160,7 +160,7 @@ public class Player : BallObject
 		
 		this.transform.position			= this.xLastCollectedScoreItemPosition;
 		this.transform.localRotation	= this.xOrientationAsLastCollectedScoreItem;
-		this.GetComponent<Rigidbody>().velocity			= Vector3.zero;
+		this.GetComponent<Rigidbody>().linearVelocity			= Vector3.zero;
         this.SetGravityDirection(this.xLastCollectedScoreItemGravityDirection);
         this.SetForwardDirection(this.xLastCollectedScoreItemForwardDirection);
         

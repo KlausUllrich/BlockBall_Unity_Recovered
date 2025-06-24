@@ -267,11 +267,11 @@ public class PlayerCameraController : MonoBehaviour
         // Calc the similarty of the current velecity and the intended jump vector
         var vUp = -this.ObjectControlled.GravityDirection;
         var vJump = vUp * this.JumpForce;
-        float fScalar = Vector3.Dot(vJump, this.ObjectControlled.GetComponent<Rigidbody>().velocity);
+        float fScalar = Vector3.Dot(vJump, this.ObjectControlled.GetComponent<Rigidbody>().linearVelocity);
         float fSimilarty = fScalar / vJump.magnitude;
         // add the difference between intended and actual 
         var vDifference2Intended = vUp * (vJump.magnitude - fSimilarty);
-        this.ObjectControlled.GetComponent<Rigidbody>().velocity += vDifference2Intended;
+        this.ObjectControlled.GetComponent<Rigidbody>().linearVelocity += vDifference2Intended;
         // null jump time
         this.xJumpTime = TimeSpan.Zero;
     }
@@ -292,10 +292,10 @@ public class PlayerCameraController : MonoBehaviour
 		switch(eType)
 		{
 		case MOVEMENT_TYPE.BREAK:
-			if (pRigidBody.velocity.magnitude < 0.1f)
-				pRigidBody.velocity = Vector3.zero;
+			if (pRigidBody.linearVelocity.magnitude < 0.1f)
+				pRigidBody.linearVelocity = Vector3.zero;
 			else
-				pRigidBody.AddForce(pRigidBody.velocity.normalized * -this.BreakFactor);
+				pRigidBody.AddForce(pRigidBody.linearVelocity.normalized * -this.BreakFactor);
 			break;
 		case MOVEMENT_TYPE.FORWARD:
 			pRigidBody.AddTorque(vRight * this.SpeedFactor);
